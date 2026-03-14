@@ -47,6 +47,20 @@ activity across all 3 parallel agent containers.
 
 ---
 
+## Docker Image Rebuilds
+
+tsk caches Docker images. After certain changes, the user must run `tsk docker build --no-cache` from the
+affected project directory to rebuild. **Always remind the user to rebuild when making changes to:**
+
+- tsk Dockerfile templates or the image layering/composition logic (`tsk/src/docker/`)
+- Project Dockerfiles (e.g., `fullstack-test-app/.tsk/dockerfiles/`)
+- `.tsk/project.toml` fields that affect the Docker build (e.g., `layers`, `certs`, `runtime`)
+- Global defaults (`~/.config/tsk/defaults.toml`) that affect the Docker build (e.g., `certs`)
+- Proxy configuration (Squid/Traefik) that gets baked into images
+- Base, stack, or agent layer Dockerfiles (`tsk/dockerfiles/`)
+
+---
+
 ## Getting Started
 
 Each project has full build commands and architecture details in its own CLAUDE.md:
