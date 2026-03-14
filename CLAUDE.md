@@ -10,6 +10,10 @@ Layer 2 of three-layer documentation model. Contains open-source tools only.
 
 All paths are relative to this repo root (`~/projects/portal/`).
 
+**Each project subdirectory is its own independent git repository.** They are not submodules or part
+of the portal repo. Git operations (commit, push, log, etc.) must be run from within the project
+directory, e.g. `git -C fullstack-test-app/ ...` or by `cd`-ing into the project first.
+
 | Project | Path | Stack | Purpose |
 |---------|------|-------|---------|
 | tsk | tsk/ | Rust, Cargo | CLI for creating agentic dev environments — spin up containers with Claude Code, bypassed permissions, git branch retrieval, session resume |
