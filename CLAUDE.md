@@ -49,14 +49,20 @@ activity across all 3 parallel agent containers.
 
 ## Docker Image Rebuilds
 
-tsk caches Docker images. After certain changes, the user must run `tsk docker build --no-cache` from the
-affected project directory to rebuild. **Always remind the user to rebuild when making changes to:**
+tsk uses content-hashing to detect when Docker images are stale. When the composed Dockerfile changes
+(from any layer, config, or cert changes), `tsk shell` / `tsk run` will auto-rebuild with Docker's
+layer cache — no manual rebuild needed for most changes.
 
+**`tsk docker build --no-cache` is only needed when:**
+- Upstream base images have security updates (e.g., Ubuntu, Node.js)
+- A `RUN` command fetches something that changed externally (e.g., `npm install -g` with new version)
+- Docker layer cache is corrupted or stale for reasons outside the Dockerfile
+
+**Auto-rebuild triggers (no manual action needed):**
 - tsk Dockerfile templates or the image layering/composition logic (`tsk/src/docker/`)
 - Project Dockerfiles (e.g., `fullstack-test-app/.tsk/dockerfiles/`)
 - `.tsk/project.toml` fields that affect the Docker build (e.g., `layers`, `certs`, `runtime`)
 - Global defaults (`~/.config/tsk/defaults.toml`) that affect the Docker build (e.g., `certs`)
-- Proxy configuration (Squid/Traefik) that gets baked into images
 - Base, stack, or agent layer Dockerfiles (`tsk/dockerfiles/`)
 
 ---
