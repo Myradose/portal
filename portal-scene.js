@@ -476,8 +476,9 @@ export function createPortalScene(state, opts) {
     })
     composer = new EffectComposer(renderer, renderTarget)
     composer.addPass(new RenderPass(scene, camera))
+    const bloomRes = opts.bloomResolution || Math.max(w * dpr, h * dpr)
     bloomPass = new UnrealBloomPass(
-      new THREE.Vector2(w * dpr, h * dpr),
+      new THREE.Vector2(bloomRes, bloomRes),
       opts.bloomStrength,
       opts.bloomRadius,
       opts.bloomThreshold,

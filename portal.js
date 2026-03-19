@@ -42,10 +42,11 @@ function initPortal() {
   const SCENE_W = Math.round(SCENE_H * aspect)
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
   const mobileBloom = isMobile ? {
-    bloomStrength: 0.2,
-    bloomRadius: 0.2,
-    bloomThreshold: 0.35,
-    hazeIntensity: 0.8,
+    bloomStrength: 0.35,
+    bloomRadius: 0.3,
+    bloomThreshold: 0.25,
+    bloomResolution: 512,
+    hazeIntensity: 1.0,
   } : {}
   const opts = { ...PORTAL_SCENE_DEFAULTS, ringSize: Math.round(SCENE_H * (360 / 552)), ...mobileBloom }
 
