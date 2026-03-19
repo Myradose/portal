@@ -149,9 +149,12 @@ function initPortal() {
     }, 0)
 
     const aboveFold = []
+    const centerY = h / 2
     content.querySelectorAll('.animate-in').forEach(el => {
       const rect = el.getBoundingClientRect()
-      if (rect.top < h * 0.85) aboveFold.push(el)
+      // Reverse scale(0.95) to get position at scale(1) matching final state
+      const naturalTop = centerY + (rect.top - centerY) / CONTENT_SCALE_INITIAL
+      if (naturalTop < h * 0.85) aboveFold.push(el)
     })
     if (aboveFold.length) {
       revealTl.fromTo(aboveFold,
