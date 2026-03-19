@@ -41,7 +41,7 @@ function initPortal() {
   const SCENE_H = Math.round(Math.sqrt(PRES_PIXELS / aspect))
   const SCENE_W = Math.round(SCENE_H * aspect)
   const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent)
-  const opts = { ...PORTAL_SCENE_DEFAULTS, ringSize: Math.round(SCENE_H * (360 / 552)), dpr: 2, bloom: !isIOS }
+  const opts = { ...PORTAL_SCENE_DEFAULTS, ringSize: Math.round(SCENE_H * (360 / 552)), dpr: 2, haze: !isIOS }
 
   const state = {
     phase: 0,
