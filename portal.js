@@ -45,7 +45,6 @@ function initPortal() {
     bloomStrength: 0.35,
     bloomRadius: 0.3,
     bloomThreshold: 0.25,
-    bloomResolution: 512,
     hazeIntensity: 1.0,
   } : {}
   const opts = { ...PORTAL_SCENE_DEFAULTS, ringSize: Math.round(SCENE_H * (360 / 552)), ...mobileBloom }

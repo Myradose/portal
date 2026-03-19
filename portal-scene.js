@@ -5,10 +5,7 @@
 // TypeScript consumers: see usePortalScene.d.ts for type definitions.
 
 import * as THREE from 'three'
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
-import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
-import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
+import { EffectComposer, RenderPass, EffectPass, BloomEffect } from 'postprocessing'
 
 export const PORTAL_SCENE_DEFAULTS = {
   ground: true,
@@ -469,22 +466,18 @@ export function createPortalScene(state, opts) {
     renderer.toneMappingExposure = 1.0
     el.appendChild(renderer.domElement)
 
-    const renderTarget = new THREE.WebGLRenderTarget(w * dpr, h * dpr, {
-      type: THREE.HalfFloatType,
-      format: THREE.RGBAFormat,
-      samples: 0,
+    bloomPass = new BloomEffect({
+      intensity: opts.bloomStrength / 0.4,
+      luminanceThreshold: opts.bloomThreshold,
+      luminanceSmoothing: 0.05,
+      mipmapBlur: true,
+      radius: opts.bloomRadius,
     })
-    composer = new EffectComposer(renderer, renderTarget)
+    composer = new EffectComposer(renderer, {
+      frameBufferType: THREE.HalfFloatType,
+    })
     composer.addPass(new RenderPass(scene, camera))
-    const bloomRes = opts.bloomResolution || Math.max(w * dpr, h * dpr)
-    bloomPass = new UnrealBloomPass(
-      new THREE.Vector2(bloomRes, bloomRes),
-      opts.bloomStrength,
-      opts.bloomRadius,
-      opts.bloomThreshold,
-    )
-    composer.addPass(bloomPass)
-    composer.addPass(new OutputPass())
+    composer.addPass(new EffectPass(camera, bloomPass))
 
     portalGroup = new THREE.Group()
     scene.add(portalGroup)
@@ -505,9 +498,8 @@ export function createPortalScene(state, opts) {
       haze.update()
       sparks.update(dt, t)
 
-      bloomPass.strength = opts.bloomStrength
-      bloomPass.radius = opts.bloomRadius
-      bloomPass.threshold = opts.bloomThreshold
+      bloomPass.intensity = opts.bloomStrength / 0.4
+      bloomPass.luminanceMaterial.threshold = opts.bloomThreshold
 
       if (opts.bloom) {
         composer.render()
@@ -537,7 +529,6 @@ export function createPortalScene(state, opts) {
     haze = null
     glowTex?.dispose()
     glowTex = null
-    bloomPass?.dispose()
     bloomPass = null
     if (composer) { composer.dispose(); composer = null }
     if (renderer) { renderer.dispose(); renderer.domElement.remove(); renderer = null }
