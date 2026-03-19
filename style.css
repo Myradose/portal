@@ -464,6 +464,20 @@ section {
   line-height: 1.5;
 }
 
+.external-icon {
+  width: 14px;
+  height: 14px;
+  fill: var(--color-text-muted);
+  vertical-align: middle;
+  margin-left: 0.3rem;
+  transition: fill 0.2s ease;
+}
+
+.resource-card-link:hover .external-icon,
+.resource-card-link:focus-visible .external-icon {
+  fill: var(--color-accent);
+}
+
 /* ========================================
    Connect
    ======================================== */
