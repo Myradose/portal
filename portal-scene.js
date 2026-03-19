@@ -450,7 +450,8 @@ export function createPortalScene(state, opts) {
   function init(el, w, h) {
     if (renderer) return
 
-    const dpr = opts.dpr ?? Math.min(window.devicePixelRatio || 1, 2)
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+    const dpr = opts.dpr ?? Math.min(window.devicePixelRatio || 1, isMobile ? 3 : 2)
     const scene = new THREE.Scene()
     const fov = 50
     const aspect = w / h
@@ -466,8 +467,9 @@ export function createPortalScene(state, opts) {
     renderer.toneMappingExposure = 1.0
     el.appendChild(renderer.domElement)
 
+    const supportsHalfFloat = !isMobile && renderer.extensions.has('EXT_color_buffer_half_float')
     const renderTarget = new THREE.WebGLRenderTarget(w * dpr, h * dpr, {
-      type: THREE.HalfFloatType,
+      type: supportsHalfFloat ? THREE.HalfFloatType : THREE.UnsignedByteType,
       format: THREE.RGBAFormat,
       samples: 0,
     })
