@@ -357,6 +357,7 @@ function createHazeSystem(state, opts, portalGroup) {
     blending: THREE.AdditiveBlending,
     depthWrite: false,
     vertexShader: `
+      precision highp float;
       varying vec2 vUv;
       void main() {
         vUv = uv;
@@ -364,6 +365,7 @@ function createHazeSystem(state, opts, portalGroup) {
       }
     `,
     fragmentShader: `
+      precision highp float;
       uniform sampler2D map;
       uniform float uArcStart;
       uniform float uArcProgress;
@@ -467,9 +469,8 @@ export function createPortalScene(state, opts) {
     renderer.toneMappingExposure = 1.0
     el.appendChild(renderer.domElement)
 
-    const supportsHalfFloat = !isMobile && renderer.extensions.has('EXT_color_buffer_half_float')
     const renderTarget = new THREE.WebGLRenderTarget(w * dpr, h * dpr, {
-      type: supportsHalfFloat ? THREE.HalfFloatType : THREE.UnsignedByteType,
+      type: THREE.HalfFloatType,
       format: THREE.RGBAFormat,
       samples: 0,
     })
