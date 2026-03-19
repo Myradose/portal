@@ -46,6 +46,7 @@ function initPortal() {
   const state = {
     phase: 0,
     arcProgress: 0,
+    arcStart: null,
     sparksActivated: 0,
     coreNeedsFullCircle: false,
   }
@@ -255,7 +256,8 @@ function initPortal() {
   }
 
   function markSegment(angle) {
-    const normalized = ((angle % TAU) + TAU) % TAU
+    const offset = state.arcStart ?? 0
+    const normalized = (((angle - offset) % TAU) + TAU) % TAU
     const seg = Math.floor(normalized / TAU * SEGMENTS) % SEGMENTS
     if (!covered[seg]) { covered[seg] = 1; coveredCount++ }
     const prev = (seg - 1 + SEGMENTS) % SEGMENTS
@@ -275,7 +277,11 @@ function initPortal() {
     if (state.phase >= 2) return
     e.preventDefault()
     tracing = true
-    if (state.phase === 0) { state.phase = 1; instruction.classList.add('hidden') }
+    if (state.phase === 0) {
+      state.phase = 1
+      state.arcStart = getAngle(e)
+      instruction.classList.add('hidden')
+    }
     markSegment(getAngle(e))
     updateArcFromCoverage()
   })

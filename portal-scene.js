@@ -31,7 +31,7 @@ export const PORTAL_SCENE_DEFAULTS = {
 const RING_RADIUS = 1.15
 const SPARK_COUNT = 2800
 const CORE_COUNT = 800
-const ARC_START = Math.PI / 2
+const DEFAULT_ARC_START = Math.PI / 2
 
 function createGlowTexture() {
   const size = 128
@@ -65,7 +65,7 @@ function createSparkSystem(state, opts, glowTex, portalGroup) {
   function spawn(i, t) {
     let ringAngle
     if (state.phase === 1 || state.phase === 3) {
-      ringAngle = ARC_START + Math.random() * state.arcProgress
+      ringAngle = (state.arcStart ?? DEFAULT_ARC_START) + Math.random() * state.arcProgress
     } else {
       ringAngle = t * opts.ringSpeed + Math.random() * Math.PI * 2
     }
@@ -278,7 +278,7 @@ function createCoreSystem(state, opts, glowTex, portalGroup) {
         if (state.arcProgress < 0.01) {
           cPos[i * 3 + 2] = -999
         } else {
-          const angle = ARC_START + Math.random() * state.arcProgress
+          const angle = (state.arcStart ?? DEFAULT_ARC_START) + Math.random() * state.arcProgress
           const r = RING_RADIUS + (Math.random() - 0.5) * 0.06
           cPos[i * 3] = Math.cos(angle) * r
           cPos[i * 3 + 1] = Math.sin(angle) * r
@@ -346,7 +346,7 @@ function createHazeSystem(state, opts, portalGroup) {
 
   const uniforms = {
     map: { value: hazeTex },
-    uArcStart: { value: ARC_START },
+    uArcStart: { value: DEFAULT_ARC_START },
     uArcProgress: { value: 0.0 },
     uSoftEdge: { value: 0.5 },
     uIntensity: { value: 1.0 },
@@ -413,6 +413,7 @@ function createHazeSystem(state, opts, portalGroup) {
   function update() {
     if (opts.haze && state.phase !== 0) {
       hazeMesh.visible = true
+      uniforms.uArcStart.value = state.arcStart ?? DEFAULT_ARC_START
       uniforms.uArcProgress.value = state.arcProgress
     } else {
       hazeMesh.visible = false
