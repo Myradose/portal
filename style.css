@@ -19,6 +19,7 @@
 }
 
 html {
+  background-color: #0a0a0f;
   scroll-behavior: smooth;
   overflow-y: scroll;
   scrollbar-gutter: stable;
