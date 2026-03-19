@@ -19,6 +19,7 @@ function initPortal() {
   const skipBtn = document.getElementById('skip-btn')
   const playBtn = document.getElementById('play-btn')
   document.body.classList.add('no-scroll')
+  document.documentElement.style.overflow = 'hidden'
 
   const w = window.innerWidth
   const h = window.innerHeight
@@ -200,6 +201,7 @@ function initPortal() {
         content.style.cssText = ''
         content.style.visibility = 'visible'
         content.style.clipPath = 'none'
+        document.documentElement.style.overflow = ''
         document.body.classList.remove('no-scroll')
         setupScrollAnimations()
       },
@@ -223,6 +225,7 @@ function initPortal() {
     overlay.classList.add('skip-fade')
     overlay.addEventListener('transitionend', () => {
       overlay.remove()
+      document.documentElement.style.overflow = ''
       document.body.classList.remove('no-scroll')
       setupScrollAnimations()
     }, { once: true })
