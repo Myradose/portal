@@ -32,6 +32,11 @@ function initPortal() {
   const CONTENT_REVEAL_TIME = 1.8
   const ZOOM_FORWARD_DURATION = 2.8
 
+  // Overshoot so content at scale(0.95) fills the viewport exactly
+  const scaleOver = (1 / CONTENT_SCALE_INITIAL - 1) / 2
+  const overX = Math.ceil(w * scaleOver)
+  const overY = Math.ceil(h * scaleOver)
+
   // --- Scene setup ---
   // Match the viewport aspect ratio so circles aren't stretched into ovals,
   // but keep the same total pixel budget as the presentation (980*552 ≈ 541K)
@@ -115,7 +120,9 @@ function initPortal() {
     overlay.appendChild(content)
     Object.assign(content.style, {
       position: 'absolute',
-      inset: '0',
+      inset: `-${overY}px -${overX}px`,
+      boxSizing: 'content-box',
+      padding: `${overY}px ${overX}px`,
       zIndex: '2',
       transformOrigin: 'center center',
       transform: `scale(${CONTENT_SCALE_INITIAL})`,
@@ -171,7 +178,7 @@ function initPortal() {
   }
 
   function applyProgress(p) {
-    const maxR = Math.hypot(w, h) / 2
+    const maxR = Math.hypot(w, h) / (2 * CONTENT_SCALE_INITIAL)
     const ringScale = 1 + (RING_SCALE_END - 1) * p
     const currentClip = Math.min(clipR * ringScale, maxR)
     const contentScale = CONTENT_SCALE_INITIAL + (1 - CONTENT_SCALE_INITIAL) * p
