@@ -116,17 +116,26 @@ function initPortal() {
   let contentOverlay = null
   let revealTl = null
   let windowShown = false
+  let portalW = w
+  let portalH = h
 
   function showPortalWindow() {
     if (windowShown) return
     windowShown = true
 
+    // Re-measure at call time — iOS may have expanded the viewport since init
+    // (address bar retraction) making the overlay taller than the cached h.
+    portalW = overlay.offsetWidth
+    portalH = overlay.offsetHeight
+    const curOverX = Math.ceil(portalW * scaleOver)
+    const curOverY = Math.ceil(portalH * scaleOver)
+
     overlay.appendChild(content)
     Object.assign(content.style, {
       position: 'absolute',
-      inset: `-${overY}px -${overX}px`,
+      inset: `-${curOverY}px -${curOverX}px`,
       boxSizing: 'content-box',
-      padding: `${overY}px ${overX}px`,
+      padding: `${curOverY}px ${curOverX}px`,
       zIndex: '2',
       transformOrigin: 'center center',
       transform: `scale(${CONTENT_SCALE_INITIAL})`,
@@ -160,12 +169,12 @@ function initPortal() {
     }, 0)
 
     const aboveFold = []
-    const centerY = h / 2
+    const centerY = portalH / 2
     content.querySelectorAll('.animate-in').forEach(el => {
       const rect = el.getBoundingClientRect()
       // Reverse scale(0.95) to get position at scale(1) matching final state
       const naturalTop = centerY + (rect.top - centerY) / CONTENT_SCALE_INITIAL
-      if (naturalTop < h * 0.85) aboveFold.push(el)
+      if (naturalTop < portalH * 0.85) aboveFold.push(el)
     })
     if (aboveFold.length) {
       revealTl.fromTo(aboveFold,
@@ -182,7 +191,7 @@ function initPortal() {
   }
 
   function applyProgress(p) {
-    const maxR = Math.hypot(w, h) / (2 * CONTENT_SCALE_INITIAL)
+    const maxR = Math.hypot(portalW, portalH) / (2 * CONTENT_SCALE_INITIAL)
     const ringScale = 1 + (RING_SCALE_END - 1) * p
     const currentClip = Math.min(clipR * ringScale, maxR)
     const contentScale = CONTENT_SCALE_INITIAL + (1 - CONTENT_SCALE_INITIAL) * p
