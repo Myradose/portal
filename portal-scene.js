@@ -470,7 +470,7 @@ export function createPortalScene(state, opts) {
       luminanceThreshold: opts.bloomThreshold,
       luminanceSmoothing: 0.05,
       mipmapBlur: true,
-      radius: opts.bloomRadius,
+      radius: 0.85,
     })
     composer = new EffectComposer(renderer, {
       frameBufferType: THREE.HalfFloatType,
