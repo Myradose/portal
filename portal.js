@@ -18,6 +18,12 @@ function initPortal() {
   const instruction = document.getElementById('trace-instruction')
   const skipBtn = document.getElementById('skip-btn')
   const playBtn = document.getElementById('play-btn')
+  // Prevent scrolling without touching overflow — iOS changes viewport height when
+  // overflow:hidden is applied, causing a measurement mismatch and black bar at bottom.
+  const preventScroll = e => e.preventDefault()
+  document.addEventListener('wheel', preventScroll, { passive: false })
+  document.addEventListener('touchmove', preventScroll, { passive: false })
+
   const w = window.innerWidth
   const h = window.innerHeight
   const TAU = Math.PI * 2
@@ -127,8 +133,7 @@ function initPortal() {
       clipPath: `circle(${clipR}px at 50% 50%)`,
       visibility: 'visible',
       background: 'white',
-      overflowY: 'auto',
-      touchAction: 'pan-y',
+      overflow: 'hidden',
     })
     content.classList.add('preview')
 
@@ -143,7 +148,6 @@ function initPortal() {
     content.appendChild(contentOverlay)
 
     canvasEl.style.zIndex = '5'
-    canvasEl.style.pointerEvents = 'none'
 
     // Reversible reveal timeline
     revealTl = gsap.timeline()
@@ -199,8 +203,7 @@ function initPortal() {
     content.style.transform = ''
     content.style.clipPath = 'none'
     content.style.visibility = 'visible'
-    content.style.overflowY = ''
-    content.style.touchAction = ''
+    content.style.overflow = ''
   }
 
   function animateZoom() {
@@ -209,11 +212,11 @@ function initPortal() {
       onComplete() {
         scene.dispose()
         if (contentOverlay) contentOverlay.remove()
-        window.scrollTo(0, content.scrollTop)
-        canvasEl.style.pointerEvents = ''
         document.body.insertBefore(content, overlay)
         overlay.remove()
         clearPortalStyles()
+        document.removeEventListener('wheel', preventScroll)
+        document.removeEventListener('touchmove', preventScroll)
         setupScrollAnimations()
       },
     }).to(proxy, {
@@ -229,13 +232,13 @@ function initPortal() {
     guideRing.mat.dispose()
     scene.dispose()
     if (contentOverlay) contentOverlay.remove()
-    window.scrollTo(0, content.scrollTop)
-    canvasEl.style.pointerEvents = ''
     document.body.insertBefore(content, overlay)
     clearPortalStyles()
     overlay.classList.add('skip-fade')
     overlay.addEventListener('transitionend', () => {
       overlay.remove()
+      document.removeEventListener('wheel', preventScroll)
+      document.removeEventListener('touchmove', preventScroll)
       setupScrollAnimations()
     }, { once: true })
   }
