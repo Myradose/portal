@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Doctor Strange Approach to Parallel Agent Orchestration</title>
+<meta name="description" content="Companion resource page for Alden Geipel's RVATech Data & AI Summit 2026 talk on parallel agent orchestration and environment engineering.">
+<meta property="og:title" content="The Doctor Strange Approach to Parallel Agent Orchestration">
+<meta property="og:description" content="Environment Engineering for AI Agent Development  - companion resources for Alden Geipel's RVATech Data & AI Summit 2026 talk.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="The Doctor Strange Approach to Parallel Agent Orchestration">
+<meta name="twitter:description" content="Environment Engineering for AI Agent Development  - companion resources for Alden Geipel's RVATech Data & AI Summit 2026 talk.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='none' stroke='%23f59e0b' stroke-width='8'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ====== Trace Overlay ====== -->
+<div id="trace-overlay">
+  <div class="trace-ui">
+    <p class="trace-instruction" id="trace-instruction">Trace the portal</p>
+  </div>
+  <div class="overlay-controls">
+    <button class="overlay-btn" id="play-btn">Play</button>
+    <button class="overlay-btn" id="skip-btn">Skip</button>
+  </div>
+</div>
+
+<!-- ====== Content (revealed after trace) ====== -->
+<div id="content">
+
+  <header class="hero">
+    <div class="hero-text">
+      <h1 class="hero-title animate-in delay-1">The Doctor Strange Approach to Parallel Agent Orchestration</h1>
+      <p class="hero-subtitle animate-in delay-2">Environment Engineering for AI Agent Development</p>
+      <div class="hero-meta animate-in delay-3">
+        <p class="hero-speaker">Alden Geipel</p>
+        <p class="hero-event">RVATech Data &amp; AI Summit 2026</p>
+      </div>
+    </div>
+  </header>
+
+  <section>
+    <div class="container">
+      <h2 class="section-title animate-in">About the Speaker</h2>
+      <div class="card animate-in">
+        <ul class="about-list">
+          <li><strong>Full Stack Developer</strong> at Allianz Partners</li>
+          <li><strong>AI Committee</strong> member  - shaping AI adoption strategy</li>
+          <li>Built AI-powered compliance tools with <strong>Claude</strong> &amp; <strong>AWS Bedrock</strong></li>
+          <li>B.S. in Computer Science, <strong>James Madison University</strong></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"><div class="container"><hr></div></div>
+
+  <section>
+    <div class="container">
+      <h2 class="section-title animate-in">Three Pillars of Environment Engineering</h2>
+      <div class="pillars-grid">
+
+        <div class="pillar-card animate-in">
+          <div class="pillar-icon">
+            <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M24 4H8a2 2 0 00-2 2v20a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2zm0 22H8V6h16zM11 10h2v2h-2zm4 0h6v2h-6zm-4 6h2v2h-2zm4 0h6v2h-6z"/></svg>
+          </div>
+          <h3 class="pillar-title">Isolated Environments</h3>
+          <p class="pillar-desc">Sandboxed Docker containers where agents work safely with the full application stack  - no risk to your machine.</p>
+        </div>
+
+        <div class="pillar-card animate-in">
+          <div class="pillar-icon">
+            <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M28 16v6H4v-6H2v6a2 2 0 002 2h24a2 2 0 002-2v-6zM6 12l1.41-1.41L15 18.17V2h2v16.17l7.59-7.58L26 12l-10 10z"/></svg>
+          </div>
+          <h3 class="pillar-title">Observability</h3>
+          <p class="pillar-desc">Dashboards to watch agents work in real time  - logs, live frontends, and browser automation from your host machine.</p>
+        </div>
+
+        <div class="pillar-card animate-in">
+          <div class="pillar-icon">
+            <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M26 24v4H6v-4H4v4a2 2 0 002 2h20a2 2 0 002-2v-4zm0-10l-1.41-1.41L17 20.17V2h-2v18.17l-7.59-7.58L6 14l10 10z"/></svg>
+          </div>
+          <h3 class="pillar-title">Work Retrieval</h3>
+          <p class="pillar-desc">Pull git branches and artifacts out of each container. Review all implementations, then merge the reality you want.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"><div class="container"><hr></div></div>
+
+  <section>
+    <div class="container">
+      <h2 class="section-title animate-in">Source Code</h2>
+      <p class="section-desc animate-in">Everything from this talk is open source. This is experimental  - not production-ready.</p>
+      <div class="source-grid">
+
+        <a class="card-link animate-in" href="https://github.com/Myradose/portal" target="_blank" rel="noopener">
+          <div class="card featured">
+            <div class="card-title">Portal Ecosystem</div>
+            <div class="card-desc">Overview of the tools powering the demo  - orchestration, monitoring, and the presentation itself.</div>
+            <div class="card-url">github.com/Myradose/portal</div>
+          </div>
+        </a>
+
+        <a class="card-link animate-in" href="https://github.com/Myradose/tsk" target="_blank" rel="noopener">
+          <div class="card">
+            <div class="card-title">tsk</div>
+            <div class="card-desc">CLI for creating sandboxed, observable AI agent development environments. Fork of <strong>jasonjmcghee/tsk</strong>.</div>
+            <div class="card-url">github.com/Myradose/tsk</div>
+          </div>
+        </a>
+
+        <a class="card-link animate-in" href="https://github.com/Myradose/claude-code-viewer" target="_blank" rel="noopener">
+          <div class="card">
+            <div class="card-title">Claude Code Viewer</div>
+            <div class="card-desc">Web UI to monitor, spawn, and observe parallel agent environments in real time. Fork of <strong>AThompson7/claude-code-viewer</strong>.</div>
+            <div class="card-url">github.com/Myradose/claude-code-viewer</div>
+          </div>
+        </a>
+
+        <a class="card-link animate-in" href="https://github.com/Myradose/portal/tree/main/presentation" target="_blank" rel="noopener">
+          <div class="card">
+            <div class="card-title">Presentation Source</div>
+            <div class="card-desc">Slidev deck with Three.js portal effect and GSAP animations.</div>
+            <div class="card-url">github.com/Myradose/portal/tree/main/presentation</div>
+          </div>
+        </a>
+
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"><div class="container"><hr></div></div>
+
+  <section>
+    <div class="container">
+      <h2 class="section-title animate-in">Resources</h2>
+      <p class="section-desc animate-in">Concepts, tools, and references from the talk.</p>
+      <div class="resource-grid">
+
+        <div class="resource-card animate-in">
+          <div class="resource-label">Concept</div>
+          <h3 class="resource-title">Context Engineering</h3>
+          <p class="resource-desc">The paradigm shift from crafting individual prompts to designing the entire information environment an AI model operates in  - tools, knowledge, and instructions working together.</p>
+        </div>
+
+        <div class="resource-card animate-in">
+          <div class="resource-label">Concept</div>
+          <h3 class="resource-title">Environment Engineering</h3>
+          <p class="resource-desc">The next evolution: isolated, observable, retrievable environments where AI agents can safely tackle complex development work without interfering with each other or your codebase.</p>
+        </div>
+
+        <a class="resource-card resource-card-link animate-in" href="https://docs.anthropic.com/en/docs/claude-code/overview" target="_blank" rel="noopener">
+          <div class="resource-label">Tool</div>
+          <h3 class="resource-title">Claude Code</h3>
+          <p class="resource-desc">Anthropic's agentic coding tool that lives in your terminal. The AI agent powering every container in the demo.</p>
+        </a>
+
+        <a class="resource-card resource-card-link animate-in" href="https://www.youtube.com/@ColeMedin" target="_blank" rel="noopener">
+          <div class="resource-label">Inspiration</div>
+          <h3 class="resource-title">Cole Medin</h3>
+          <p class="resource-desc">YouTube channel covering AI agents, automation, and the tools that make agentic workflows practical. A key inspiration for this project.</p>
+        </a>
+
+        <div class="resource-card animate-in">
+          <div class="resource-label">Recording</div>
+          <h3 class="resource-title">Talk Recording</h3>
+          <p class="resource-desc">The full presentation recording will be posted here when available.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"><div class="container"><hr></div></div>
+
+  <section>
+    <div class="container">
+      <h2 class="section-title animate-in">Connect</h2>
+      <div class="connect-links">
+
+        <a class="connect-link animate-in" href="https://www.linkedin.com/in/aldengeipel/" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+          <span class="connect-label">LinkedIn</span>
+        </a>
+
+        <a class="connect-link animate-in" href="https://github.com/Myradose" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+          <span class="connect-label">GitHub</span>
+        </a>
+
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <p class="footer-note">None of this information should be gatekept.</p>
+      <p>RVATech Data &amp; AI Summit 2026</p>
+    </div>
+  </footer>
+
+</div>
+
+<!-- ====== Three.js Portal ====== -->
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12/dist/ScrollTrigger.min.js"></script>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.183/build/three.module.min.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.183/examples/jsm/",
+    "three/examples/jsm/": "https://cdn.jsdelivr.net/npm/three@0.183/examples/jsm/"
+  }
+}
+</script>
+<script type="module" src="portal.js"></script>
+<!-- Fallback if Three.js CDN fails -->
+<script>
+setTimeout(function() {
+  if (!window.__portalInitialized) {
+    var o = document.getElementById('trace-overlay');
+    if (o) o.remove();
+    var c = document.getElementById('content');
+    if (c) {
+      c.style.visibility = 'visible';
+      c.style.clipPath = 'none';
+      c.querySelectorAll('.animate-in').forEach(function(el) {
+        el.style.opacity = '1';
+        el.style.transform = 'none';
+      });
+    }
+  }
+}, 4000);
+</script>
+</body>
+</html>

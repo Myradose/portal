@@ -1,0 +1,22 @@
+# Nested project repos (independent git repos, not part of portal)
+tsk/
+viewer/
+fullstack-test-app/
+presentation/
+
+# Build artifacts and misc
+architecture/
+backup-portal-v1/
+node_modules/
+
+# Screenshots and test images
+*.png
+
+# Local tooling / AI context
+.claude/
+.playwright-cli/
+CLAUDE.md
+
+# Editor / OS
+.DS_Store
+.vscode/
