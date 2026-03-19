@@ -5,7 +5,10 @@
 // TypeScript consumers: see usePortalScene.d.ts for type definitions.
 
 import * as THREE from 'three'
-import { EffectComposer, RenderPass, EffectPass, BloomEffect } from 'postprocessing'
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
+import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
 
 export const PORTAL_SCENE_DEFAULTS = {
   ground: true,
@@ -354,7 +357,6 @@ function createHazeSystem(state, opts, portalGroup) {
     blending: THREE.AdditiveBlending,
     depthWrite: false,
     vertexShader: `
-      precision highp float;
       varying vec2 vUv;
       void main() {
         vUv = uv;
@@ -362,7 +364,6 @@ function createHazeSystem(state, opts, portalGroup) {
       }
     `,
     fragmentShader: `
-      precision highp float;
       uniform sampler2D map;
       uniform float uArcStart;
       uniform float uArcProgress;
@@ -465,18 +466,21 @@ export function createPortalScene(state, opts) {
     renderer.toneMappingExposure = 1.0
     el.appendChild(renderer.domElement)
 
-    bloomPass = new BloomEffect({
-      intensity: opts.bloomStrength / 0.4,
-      luminanceThreshold: opts.bloomThreshold,
-      luminanceSmoothing: 0.05,
-      mipmapBlur: true,
-      radius: 0.85,
+    const renderTarget = new THREE.WebGLRenderTarget(w * dpr, h * dpr, {
+      type: THREE.HalfFloatType,
+      format: THREE.RGBAFormat,
+      samples: 0,
     })
-    composer = new EffectComposer(renderer, {
-      frameBufferType: THREE.HalfFloatType,
-    })
+    composer = new EffectComposer(renderer, renderTarget)
     composer.addPass(new RenderPass(scene, camera))
-    composer.addPass(new EffectPass(camera, bloomPass))
+    bloomPass = new UnrealBloomPass(
+      new THREE.Vector2(w * dpr, h * dpr),
+      opts.bloomStrength,
+      opts.bloomRadius,
+      opts.bloomThreshold,
+    )
+    composer.addPass(bloomPass)
+    composer.addPass(new OutputPass())
 
     portalGroup = new THREE.Group()
     scene.add(portalGroup)
@@ -497,8 +501,9 @@ export function createPortalScene(state, opts) {
       haze.update()
       sparks.update(dt, t)
 
-      bloomPass.intensity = opts.bloomStrength / 0.4
-      bloomPass.luminanceMaterial.threshold = opts.bloomThreshold
+      bloomPass.strength = opts.bloomStrength
+      bloomPass.radius = opts.bloomRadius
+      bloomPass.threshold = opts.bloomThreshold
 
       if (opts.bloom) {
         composer.render()
@@ -528,6 +533,7 @@ export function createPortalScene(state, opts) {
     haze = null
     glowTex?.dispose()
     glowTex = null
+    bloomPass?.dispose()
     bloomPass = null
     if (composer) { composer.dispose(); composer = null }
     if (renderer) { renderer.dispose(); renderer.domElement.remove(); renderer = null }
