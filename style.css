@@ -47,7 +47,7 @@ body.no-scroll {
   position: fixed;
   inset: 0;
   z-index: 100;
-  background: #000;
+  background: green;
   display: flex;
   align-items: center;
   justify-content: center;
