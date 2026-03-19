@@ -241,8 +241,7 @@ function initPortal() {
 
   // --- Interaction: tracing ---
   const SEGMENTS = 60
-  const covered = new Uint8Array(SEGMENTS)
-  let coveredCount = 0
+  let frontier = 0
   let tracing = false
   let targetArcProgress = 0
   let smoothArcProgress = 0
@@ -259,20 +258,17 @@ function initPortal() {
     return Math.atan2(-(clientY - rect.top - cy), clientX - rect.left - cx)
   }
 
-  function markSegment(angle) {
+  function updateTrace(angle) {
     const offset = state.arcStart ?? 0
     const normalized = (((angle - offset) % TAU) + TAU) % TAU
     const seg = Math.floor(normalized / TAU * SEGMENTS) % SEGMENTS
-    if (!covered[seg]) { covered[seg] = 1; coveredCount++ }
-    const prev = (seg - 1 + SEGMENTS) % SEGMENTS
-    const next = (seg + 1) % SEGMENTS
-    if (!covered[prev]) { covered[prev] = 1; coveredCount++ }
-    if (!covered[next]) { covered[next] = 1; coveredCount++ }
-  }
-
-  function updateArcFromCoverage() {
-    targetArcProgress = (coveredCount / SEGMENTS) * TAU
-    if (coveredCount >= SEGMENTS * 0.85 && state.phase === 1 && !autoCompleting) {
+    // Only advance if within a few segments ahead of the frontier
+    const ahead = seg - frontier
+    if (ahead > 0 && ahead < SEGMENTS * 0.3) {
+      frontier = seg
+    }
+    targetArcProgress = (frontier / SEGMENTS) * TAU
+    if (frontier >= SEGMENTS * 0.85 && state.phase === 1 && !autoCompleting) {
       beginAutoComplete()
     }
   }
@@ -286,14 +282,12 @@ function initPortal() {
       state.arcStart = getAngle(e)
       instruction.classList.add('hidden')
     }
-    markSegment(getAngle(e))
-    updateArcFromCoverage()
+    updateTrace(getAngle(e))
   })
   canvasEl.addEventListener('pointermove', e => {
     if (!tracing || state.phase >= 2) return
     e.preventDefault()
-    markSegment(getAngle(e))
-    updateArcFromCoverage()
+    updateTrace(getAngle(e))
   })
   const endTrace = () => { tracing = false }
   canvasEl.addEventListener('pointerup', endTrace)
@@ -397,8 +391,7 @@ function initPortal() {
   window.__portalDebug = {
     get phase() { return state.phase },
     skipToPhase2() {
-      covered.fill(1)
-      coveredCount = SEGMENTS
+      frontier = SEGMENTS
       targetArcProgress = TAU
       smoothArcProgress = TAU
       setReadyState()
