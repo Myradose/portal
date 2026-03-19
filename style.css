@@ -143,6 +143,10 @@ body.no-scroll {
   animation: none;
 }
 
+#content.preview .hero {
+  min-height: 100vh;
+}
+
 /* ========================================
    Typography
    ======================================== */
