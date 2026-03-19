@@ -18,11 +18,7 @@ function initPortal() {
   const instruction = document.getElementById('trace-instruction')
   const skipBtn = document.getElementById('skip-btn')
   const playBtn = document.getElementById('play-btn')
-  // Prevent scrolling without touching overflow — iOS changes viewport height when
-  // overflow:hidden is applied, causing a measurement mismatch and black bar at bottom.
-  const preventScroll = e => e.preventDefault()
-  document.addEventListener('wheel', preventScroll, { passive: false })
-  document.addEventListener('touchmove', preventScroll, { passive: false })
+  document.body.classList.add('no-scroll')
 
   const w = window.innerWidth
   const h = window.innerHeight
@@ -131,7 +127,7 @@ function initPortal() {
       transform: `scale(${CONTENT_SCALE_INITIAL})`,
       clipPath: `circle(${clipR}px at 50% 50%)`,
       visibility: 'visible',
-      background: 'white',
+      background: 'var(--color-bg)',
       overflow: 'hidden',
     })
     content.classList.add('preview')
@@ -214,8 +210,7 @@ function initPortal() {
         document.body.insertBefore(content, overlay)
         overlay.remove()
         clearPortalStyles()
-        document.removeEventListener('wheel', preventScroll)
-        document.removeEventListener('touchmove', preventScroll)
+        document.body.classList.remove('no-scroll')
         setupScrollAnimations()
       },
     }).to(proxy, {
@@ -236,8 +231,7 @@ function initPortal() {
     overlay.classList.add('skip-fade')
     overlay.addEventListener('transitionend', () => {
       overlay.remove()
-      document.removeEventListener('wheel', preventScroll)
-      document.removeEventListener('touchmove', preventScroll)
+      document.body.classList.remove('no-scroll')
       setupScrollAnimations()
     }, { once: true })
   }
