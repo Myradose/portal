@@ -360,6 +360,7 @@ function initPortal() {
     state.coreNeedsFullCircle = true
     if (!windowShown) showPortalWindow()
     gsap.to(guideRing.mat.uniforms.uOpacity, { value: 0, duration: 0.5, ease: 'power2.out' })
+    gsap.to([skipBtn, playBtn], { opacity: 0, duration: 0.3, ease: 'power2.out', onComplete() { skipBtn.style.pointerEvents = 'none'; playBtn.style.pointerEvents = 'none' } })
   }
 
   // --- Smoothing loop for tracing (runs alongside scene's own loop) ---
