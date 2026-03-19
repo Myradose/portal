@@ -129,7 +129,7 @@ function initPortal() {
       transform: `scale(${CONTENT_SCALE_INITIAL})`,
       clipPath: `circle(${clipR}px at 50% 50%)`,
       visibility: 'visible',
-      background: 'var(--color-bg)',
+      background: 'white',
       overflow: 'hidden',
     })
     content.classList.add('preview')
@@ -190,6 +190,19 @@ function initPortal() {
     canvasEl.style.opacity = `${Math.max(0, 1 - p * p * p * 2.5)}`
   }
 
+  function clearPortalStyles() {
+    content.style.position = ''
+    content.style.inset = ''
+    content.style.boxSizing = ''
+    content.style.padding = ''
+    content.style.zIndex = ''
+    content.style.transformOrigin = ''
+    content.style.transform = ''
+    content.style.clipPath = 'none'
+    content.style.visibility = 'visible'
+    content.style.overflow = ''
+  }
+
   function animateZoom() {
     const proxy = { progress: 0 }
     gsap.timeline({
@@ -198,9 +211,7 @@ function initPortal() {
         if (contentOverlay) contentOverlay.remove()
         document.body.insertBefore(content, overlay)
         overlay.remove()
-        content.style.cssText = ''
-        content.style.visibility = 'visible'
-        content.style.clipPath = 'none'
+        clearPortalStyles()
         document.documentElement.style.overflow = ''
         document.body.classList.remove('no-scroll')
         setupScrollAnimations()
@@ -219,9 +230,7 @@ function initPortal() {
     scene.dispose()
     if (contentOverlay) contentOverlay.remove()
     document.body.insertBefore(content, overlay)
-    content.style.cssText = ''
-    content.style.visibility = 'visible'
-    content.style.clipPath = 'none'
+    clearPortalStyles()
     overlay.classList.add('skip-fade')
     overlay.addEventListener('transitionend', () => {
       overlay.remove()
