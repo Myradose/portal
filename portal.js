@@ -36,11 +36,6 @@ function initPortal() {
   const CONTENT_REVEAL_TIME = 1.8
   const ZOOM_FORWARD_DURATION = 2.8
 
-  // Overshoot so content at scale(0.95) fills the viewport exactly
-  const scaleOver = (1 / CONTENT_SCALE_INITIAL - 1) / 2
-  const overX = Math.ceil(w * scaleOver)
-  const overY = Math.ceil(h * scaleOver)
-
   // --- Scene setup ---
   // Match the viewport aspect ratio so circles aren't stretched into ovals,
   // but keep the same total pixel budget as the presentation (980*552 ≈ 541K)
@@ -116,26 +111,21 @@ function initPortal() {
   let contentOverlay = null
   let revealTl = null
   let windowShown = false
-  let portalW = w
-  let portalH = h
 
   function showPortalWindow() {
     if (windowShown) return
     windowShown = true
 
-    // Re-measure at call time — iOS may have expanded the viewport since init
-    // (address bar retraction) making the overlay taller than the cached h.
-    portalW = overlay.offsetWidth
-    portalH = overlay.offsetHeight
-    const curOverX = Math.ceil(portalW * scaleOver)
-    const curOverY = Math.ceil(portalH * scaleOver)
+    // Use dvh/dvw for overshoot so it tracks iOS viewport changes
+    // (address bar retraction) in real-time instead of stale pixel values.
+    const overPct = ((1 / CONTENT_SCALE_INITIAL - 1) / 2 * 100).toFixed(4)
 
     overlay.appendChild(content)
     Object.assign(content.style, {
       position: 'absolute',
-      inset: `-${curOverY}px -${curOverX}px`,
+      inset: `-${overPct}dvh -${overPct}dvw`,
       boxSizing: 'content-box',
-      padding: `${curOverY}px ${curOverX}px`,
+      padding: `${overPct}dvh ${overPct}dvw`,
       zIndex: '2',
       transformOrigin: 'center center',
       transform: `scale(${CONTENT_SCALE_INITIAL})`,
@@ -169,12 +159,12 @@ function initPortal() {
     }, 0)
 
     const aboveFold = []
-    const centerY = portalH / 2
+    const centerY = h / 2
     content.querySelectorAll('.animate-in').forEach(el => {
       const rect = el.getBoundingClientRect()
       // Reverse scale(0.95) to get position at scale(1) matching final state
       const naturalTop = centerY + (rect.top - centerY) / CONTENT_SCALE_INITIAL
-      if (naturalTop < portalH * 0.85) aboveFold.push(el)
+      if (naturalTop < h * 0.85) aboveFold.push(el)
     })
     if (aboveFold.length) {
       revealTl.fromTo(aboveFold,
@@ -191,7 +181,7 @@ function initPortal() {
   }
 
   function applyProgress(p) {
-    const maxR = Math.hypot(portalW, portalH) / (2 * CONTENT_SCALE_INITIAL)
+    const maxR = Math.hypot(w, h) / (2 * CONTENT_SCALE_INITIAL)
     const ringScale = 1 + (RING_SCALE_END - 1) * p
     const currentClip = Math.min(clipR * ringScale, maxR)
     const contentScale = CONTENT_SCALE_INITIAL + (1 - CONTENT_SCALE_INITIAL) * p
