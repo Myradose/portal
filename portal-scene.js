@@ -449,8 +449,7 @@ export function createPortalScene(state, opts) {
   function init(el, w, h) {
     if (renderer) return
 
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
-    const dpr = opts.dpr ?? Math.min(window.devicePixelRatio || 1, isMobile ? 3 : 2)
+    const dpr = opts.dpr ?? Math.min(window.devicePixelRatio || 1, 2)
     const scene = new THREE.Scene()
     const fov = 50
     const aspect = w / h
