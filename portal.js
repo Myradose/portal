@@ -202,6 +202,7 @@ function initPortal() {
   }
 
   function animateZoom() {
+    portalActive = false
     const proxy = { progress: 0 }
     gsap.timeline({
       onComplete() {
@@ -292,8 +293,12 @@ function initPortal() {
   canvasEl.addEventListener('pointercancel', endTrace)
   canvasEl.addEventListener('pointerleave', endTrace)
 
-  skipBtn.addEventListener('click', skipReveal)
+  let portalActive = true
+  skipBtn.addEventListener('click', () => { if (portalActive) { portalActive = false; skipReveal() } })
   playBtn.addEventListener('click', playCreation)
+
+  // Resize during portal phase — skip to content rather than show distorted portal
+  window.addEventListener('resize', () => { if (portalActive) { portalActive = false; skipReveal() } })
 
   // --- Play creation (matches usePortalTimelines.playCreation) ---
   function playCreation() {
