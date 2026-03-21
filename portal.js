@@ -20,8 +20,8 @@ function initPortal() {
   const playBtn = document.getElementById('play-btn')
   document.body.classList.add('no-scroll')
 
-  const w = window.innerWidth
-  const h = window.innerHeight
+  let w = window.innerWidth
+  let h = window.innerHeight
   const TAU = Math.PI * 2
 
   // Timeline constants from usePortalTimelines.ts
@@ -37,9 +37,14 @@ function initPortal() {
   // but keep the same total pixel budget as the presentation (980*552 ≈ 541K)
   // so bloom/haze look identical.
   const PRES_PIXELS = 980 * 552
-  const aspect = w / h
-  const SCENE_H = Math.round(Math.sqrt(PRES_PIXELS / aspect))
-  const SCENE_W = Math.round(SCENE_H * aspect)
+  let SCENE_W, SCENE_H
+
+  function calcSceneDims() {
+    const aspect = w / h
+    SCENE_H = Math.round(Math.sqrt(PRES_PIXELS / aspect))
+    SCENE_W = Math.round(SCENE_H * aspect)
+  }
+  calcSceneDims()
   const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent)
   const opts = { ...PORTAL_SCENE_DEFAULTS, ringSize: Math.round(SCENE_H * (360 / 552)), dpr: 2, haze: !isIOS }
 
@@ -102,8 +107,14 @@ function initPortal() {
 
   // --- Portal window & zoom (from usePortalTimelines.ts) ---
   // clipR must be in viewport pixels, not scene pixels. Scale from scene coords.
-  const viewportScale = h / SCENE_H
-  const clipR = (opts.ringSize * CLIP_RADIUS_RATIO * viewportScale) / CONTENT_SCALE_INITIAL
+  let viewportScale = h / SCENE_H
+  let clipR = (opts.ringSize * CLIP_RADIUS_RATIO * viewportScale) / CONTENT_SCALE_INITIAL
+
+  function updateTraceTextPosition() {
+    const ringRadiusPx = opts.ringSize * viewportScale * 0.5
+    overlay.style.setProperty('--trace-text-top', `${h / 2 + ringRadiusPx + 16}px`)
+  }
+  updateTraceTextPosition()
   let contentOverlay = null
   let revealTl = null
   let windowShown = false
@@ -297,8 +308,17 @@ function initPortal() {
   skipBtn.addEventListener('click', () => { if (portalActive) { portalActive = false; skipReveal() } })
   playBtn.addEventListener('click', playCreation)
 
-  // Resize during portal phase — skip to content rather than show distorted portal
-  window.addEventListener('resize', () => { if (portalActive) { portalActive = false; skipReveal() } })
+  // Resize portal to match new viewport
+  window.addEventListener('resize', () => {
+    if (!portalActive) return
+    w = window.innerWidth
+    h = window.innerHeight
+    calcSceneDims()
+    viewportScale = h / SCENE_H
+    clipR = (opts.ringSize * CLIP_RADIUS_RATIO * viewportScale) / CONTENT_SCALE_INITIAL
+    scene.resize(SCENE_W, SCENE_H)
+    updateTraceTextPosition()
+  })
 
   // --- Play creation (matches usePortalTimelines.playCreation) ---
   function playCreation() {

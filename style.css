@@ -76,12 +76,12 @@ body.no-scroll {
 
 .trace-instruction {
   color: var(--color-text-muted);
-  font-size: 1rem;
+  font-size: clamp(0.85rem, 2vw, 1rem);
   font-weight: 500;
   letter-spacing: 0.05em;
   opacity: 0;
   animation: fadeOnly 0.8s ease 0.5s forwards;
-  margin-top: min(200px, 45vw);
+  margin-top: var(--trace-text-top, 58vh);
 }
 
 .trace-instruction.hidden {
@@ -660,9 +660,6 @@ footer {
     flex: 1;
   }
 
-  .trace-instruction {
-    margin-top: 220px;
-  }
 }
 
 /* ========================================
@@ -678,7 +675,4 @@ footer {
     box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);
   }
 
-  .trace-instruction {
-    margin-top: 240px;
-  }
 }

@@ -447,16 +447,18 @@ export function createPortalScene(state, opts) {
   let sparks = null
   let core = null
   let haze = null
+  let camera = null
+  let dpr = 1
+  const fov = 50
+  const visualDiameter = 3.0
 
   function init(el, w, h) {
     if (renderer) return
 
-    const dpr = opts.dpr ?? Math.min(window.devicePixelRatio || 1, 2)
+    dpr = opts.dpr ?? Math.min(window.devicePixelRatio || 1, 2)
     const scene = new THREE.Scene()
-    const fov = 50
     const aspect = w / h
-    const camera = new THREE.PerspectiveCamera(fov, aspect, 0.1, 100)
-    const visualDiameter = 3.0
+    camera = new THREE.PerspectiveCamera(fov, aspect, 0.1, 100)
     camera.position.z = visualDiameter * h / (2 * opts.ringSize * Math.tan((fov / 2) * Math.PI / 180))
 
     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, premultipliedAlpha: false })
@@ -523,6 +525,20 @@ export function createPortalScene(state, opts) {
     haze?.reset()
   }
 
+  function resize(w, h) {
+    if (!renderer || !camera) return
+    camera.aspect = w / h
+    camera.position.z = visualDiameter * h / (2 * opts.ringSize * Math.tan((fov / 2) * Math.PI / 180))
+    camera.updateProjectionMatrix()
+    renderer.setSize(w, h)
+    if (composer) {
+      composer.setSize(w * dpr, h * dpr)
+    }
+    if (bloomPass) {
+      bloomPass.resolution.set(w * dpr, h * dpr)
+    }
+  }
+
   function dispose() {
     if (animationId) cancelAnimationFrame(animationId)
     animationId = 0
@@ -544,7 +560,7 @@ export function createPortalScene(state, opts) {
   function getPortalGroup() { return portalGroup }
   function getRenderer() { return renderer }
 
-  return { init, resetVisuals, dispose, getPortalGroup, getRenderer }
+  return { init, resize, resetVisuals, dispose, getPortalGroup, getRenderer }
 }
 
 // Vue composable wrapper for Slidev (same API as before)
