@@ -110,6 +110,114 @@ function initPortal() {
     return { mesh, geo, mat }
   })()
 
+  // --- Interaction constants ---
+  const SEGMENTS = 60
+
+  // --- Hint dot animation (looping pointer cue) ---
+  const HINT_ARC_DEG = 30
+  const HINT_ARC_RAD = HINT_ARC_DEG * Math.PI / 180
+  const HINT_SEGMENTS = Math.round(HINT_ARC_DEG / 360 * SEGMENTS) // 5
+  const RING_RADIUS = 1.15
+
+  let hintSprite = null
+  let hintTimeline = null
+  let hintTexture = null
+  let hintMaterial = null
+
+  function createHintSprite() {
+    const size = 64
+    const canvas = document.createElement('canvas')
+    canvas.width = size
+    canvas.height = size
+    const ctx = canvas.getContext('2d')
+    const grad = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2)
+    grad.addColorStop(0, 'rgba(245, 158, 11, 1)')
+    grad.addColorStop(0.4, 'rgba(245, 158, 11, 0.6)')
+    grad.addColorStop(1, 'rgba(245, 158, 11, 0)')
+    ctx.fillStyle = grad
+    ctx.fillRect(0, 0, size, size)
+
+    hintTexture = new THREE.CanvasTexture(canvas)
+    hintMaterial = new THREE.SpriteMaterial({
+      map: hintTexture,
+      blending: THREE.AdditiveBlending,
+      transparent: true,
+      depthTest: false,
+      depthWrite: false,
+      opacity: 0,
+    })
+    hintSprite = new THREE.Sprite(hintMaterial)
+    hintSprite.scale.set(0.18, 0.18, 1)
+    hintSprite.position.z = 0.02
+    hintSprite.renderOrder = 11
+    scene.getPortalGroup().add(hintSprite)
+  }
+
+  function startHintAnimation(startAngle) {
+    if (hintTimeline) hintTimeline.kill()
+    if (!hintSprite) createHintSprite()
+
+    const from = startAngle ?? Math.PI * 0.5 // default: 12 o'clock
+    const to = from + HINT_ARC_RAD
+
+    // Position at start
+    hintSprite.position.x = Math.cos(from) * RING_RADIUS
+    hintSprite.position.y = Math.sin(from) * RING_RADIUS
+    hintMaterial.opacity = 0
+
+    const proxy = { angle: from }
+    hintTimeline = gsap.timeline({ repeat: -1, repeatDelay: 1.0 })
+
+    // Fade in
+    hintTimeline.to(hintMaterial, { opacity: 0.9, duration: 0.3, ease: 'power2.out' }, 0)
+    // Trace arc
+    hintTimeline.to(proxy, {
+      angle: to,
+      duration: 1.2,
+      ease: 'power2.inOut',
+      onUpdate() {
+        hintSprite.position.x = Math.cos(proxy.angle) * RING_RADIUS
+        hintSprite.position.y = Math.sin(proxy.angle) * RING_RADIUS
+      },
+    }, 0.3)
+    // Fade out
+    hintTimeline.to(hintMaterial, { opacity: 0, duration: 0.3, ease: 'power2.in' }, 1.5)
+    // Reset position for next loop
+    hintTimeline.call(() => {
+      proxy.angle = from
+      hintSprite.position.x = Math.cos(from) * RING_RADIUS
+      hintSprite.position.y = Math.sin(from) * RING_RADIUS
+    }, [], 1.8)
+  }
+
+  function relocateHint(angle) {
+    startHintAnimation(angle)
+  }
+
+  function killHintAnimation() {
+    if (!hintTimeline) return
+    hintTimeline.kill()
+    hintTimeline = null
+    if (hintSprite) {
+      gsap.to(hintMaterial, {
+        opacity: 0,
+        duration: 0.2,
+        ease: 'power2.out',
+        onComplete() {
+          scene.getPortalGroup().remove(hintSprite)
+          hintMaterial.dispose()
+          hintTexture.dispose()
+          hintSprite = null
+          hintMaterial = null
+          hintTexture = null
+        },
+      })
+    }
+  }
+
+  // Start the hint loop
+  startHintAnimation()
+
   // --- Portal window & zoom (from usePortalTimelines.ts) ---
   // clipR must be in viewport pixels, not scene pixels. Scale from scene coords.
   let viewportScale = h / SCENE_H
@@ -117,7 +225,9 @@ function initPortal() {
 
   function updateTraceTextPosition() {
     const ringRadiusPx = opts.ringSize * viewportScale * 0.5
-    overlay.style.setProperty('--trace-text-top', `${h / 2 + ringRadiusPx + 16}px`)
+    const gap = Math.min(16, h * 0.02)
+    const fromTop = h / 2 + ringRadiusPx + gap
+    overlay.style.setProperty('--trace-text-top', `${Math.min(fromTop, h - 80)}px`)
   }
   updateTraceTextPosition()
   // Clear loading hint and show trace instruction + play button now that portal is ready
@@ -237,6 +347,7 @@ function initPortal() {
   }
 
   function skipReveal() {
+    killHintAnimation()
     if (revealTl) { revealTl.kill(); revealTl = null }
     guideRing.geo.dispose()
     guideRing.mat.dispose()
@@ -256,7 +367,6 @@ function initPortal() {
 
 
   // --- Interaction: tracing ---
-  const SEGMENTS = 60
   let frontier = 0
   let tracing = false
   let targetArcProgress = 0
@@ -284,6 +394,9 @@ function initPortal() {
       frontier = seg
     }
     targetArcProgress = (frontier / SEGMENTS) * TAU
+    if (frontier >= HINT_SEGMENTS) {
+      killHintAnimation()
+    }
     if (frontier >= SEGMENTS * 0.85 && state.phase === 1 && !autoCompleting) {
       beginAutoComplete()
     }
@@ -297,6 +410,7 @@ function initPortal() {
       state.phase = 1
       state.arcStart = getAngle(e)
       instruction.classList.add('hidden')
+      relocateHint(state.arcStart)
     }
     updateTrace(getAngle(e))
   })
@@ -305,7 +419,13 @@ function initPortal() {
     e.preventDefault()
     updateTrace(getAngle(e))
   })
-  const endTrace = () => { tracing = false }
+  const endTrace = () => {
+    if (tracing && state.phase === 1 && frontier > 0 && frontier < HINT_SEGMENTS && hintTimeline) {
+      const frontierAngle = (state.arcStart ?? 0) + (frontier / SEGMENTS) * TAU
+      relocateHint(frontierAngle)
+    }
+    tracing = false
+  }
   canvasEl.addEventListener('pointerup', endTrace)
   canvasEl.addEventListener('pointercancel', endTrace)
   canvasEl.addEventListener('pointerleave', endTrace)
@@ -339,6 +459,7 @@ function initPortal() {
   // --- Play creation (matches usePortalTimelines.playCreation) ---
   function playCreation() {
     if (state.phase >= 2 || autoCompleting || playingCreation) return
+    killHintAnimation()
 
     const midTrace = state.phase === 1
     const startArc = midTrace ? state.arcProgress : 0

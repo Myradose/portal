@@ -116,6 +116,10 @@ body.no-scroll {
   gap: 0.5rem;
 }
 
+@media (max-height: 600px) {
+  .overlay-controls { bottom: 0.75rem; right: 0.75rem; }
+}
+
 .overlay-btn {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.15);
