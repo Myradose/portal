@@ -346,6 +346,14 @@ section {
   line-height: 1.5;
 }
 
+.card-title:has(+ .card-fork),
+.card-title:has(+ .card-fork-spacer) {
+  margin-bottom: -0.25rem;
+}
+.card-fork-spacer {
+  height: 0.65rem;
+  margin-bottom: 0.35rem;
+}
 .card-fork {
   display: block;
   font-size: 0.65rem;
@@ -353,7 +361,7 @@ section {
   color: var(--color-text-secondary);
   opacity: 0.6;
   text-decoration: none;
-  margin-top: -0.25rem;
+  margin-bottom: 0.35rem;
   white-space: nowrap;
 }
 .card-fork:hover {
@@ -606,6 +614,15 @@ footer {
 /* ========================================
    Responsive — Tablet
    ======================================== */
+@media (max-width: 639px) {
+  .card-fork-spacer {
+    display: none;
+  }
+  .card-title:has(+ .card-fork-spacer) {
+    margin-bottom: 0.35rem;
+  }
+}
+
 @media (min-width: 640px) {
   .hero-title {
     font-size: 2rem;
