@@ -3,7 +3,7 @@
 
 import * as THREE from 'three'
 import { createPortalScene, PORTAL_SCENE_DEFAULTS } from './portal-scene.js'
-import { setupScrollAnimations } from './scroll-animations.js'
+import { setupScrollAnimations, startObserving } from './scroll-animations.js'
 
 window.__portalInitialized = true
 
@@ -155,7 +155,7 @@ function initPortal() {
 
     canvasEl.style.zIndex = '5'
 
-    // Reversible reveal timeline
+    // Reversible reveal timeline (overlay + buttons only)
     revealTl = gsap.timeline()
     revealTl.to(contentOverlay, {
       opacity: 0, duration: 1.0, ease: 'power2.out',
@@ -165,21 +165,8 @@ function initPortal() {
       onComplete() { skipBtn.style.pointerEvents = 'none'; playBtn.style.pointerEvents = 'none' },
     }, 0)
 
-    const aboveFold = []
-    const centerY = h / 2
-    content.querySelectorAll('.animate-in').forEach(el => {
-      const rect = el.getBoundingClientRect()
-      // Reverse scale(0.95) to get position at scale(1) matching final state
-      const naturalTop = centerY + (rect.top - centerY) / CONTENT_SCALE_INITIAL
-      if (naturalTop < h * 0.85) aboveFold.push(el)
-    })
-    if (aboveFold.length) {
-      revealTl.fromTo(aboveFold,
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out', stagger: 0.08 },
-        0.3,
-      )
-    }
+    // Use IntersectionObserver for content reveal — handles resize naturally
+    startObserving()
   }
 
   function hidePortalWindow() {
@@ -220,6 +207,7 @@ function initPortal() {
     gsap.timeline({
       onComplete() {
         zooming = false
+        if (revealTl) { revealTl.kill(); revealTl = null }
         scene.dispose()
         if (contentOverlay) contentOverlay.remove()
         document.body.insertBefore(content, overlay)
@@ -237,6 +225,7 @@ function initPortal() {
   }
 
   function skipReveal() {
+    if (revealTl) { revealTl.kill(); revealTl = null }
     guideRing.geo.dispose()
     guideRing.mat.dispose()
     scene.dispose()
