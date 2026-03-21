@@ -261,6 +261,27 @@ section {
 }
 
 /* ========================================
+   Slides CTA
+   ======================================== */
+.slides-cta {
+  display: block;
+  margin: 1.5rem auto 0;
+  width: fit-content;
+  padding: 0.6rem 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-bg);
+  background: var(--color-accent);
+  border-radius: 6px;
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+.slides-cta:hover, .slides-cta:focus-visible {
+  background: var(--color-accent-bright);
+  color: var(--color-bg);
+}
+
+/* ========================================
    Cards
    ======================================== */
 .card {
@@ -268,7 +289,7 @@ section {
   border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 1.25rem;
-  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+  transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
   display: flex;
   flex-direction: column;
 }
@@ -293,12 +314,14 @@ section {
 .card-link:focus-visible .card {
   border-color: rgba(245, 158, 11, 0.4);
   box-shadow: 0 0 16px rgba(245, 158, 11, 0.15);
+  transform: translateY(-2px);
 }
 
 .card-link:hover .card.featured,
 .card-link:focus-visible .card.featured {
-  border-color: var(--color-accent-bright);
-  box-shadow: 0 0 30px var(--color-accent-glow);
+  border-color: #fbbf24;
+  box-shadow: 0 0 36px rgba(245, 158, 11, 0.45);
+  transform: translateY(-2px);
 }
 
 .card-link:focus-visible {
@@ -323,9 +346,25 @@ section {
   line-height: 1.5;
 }
 
+.card-fork {
+  display: block;
+  font-size: 0.65rem;
+  font-style: italic;
+  color: var(--color-text-secondary);
+  opacity: 0.6;
+  text-decoration: none;
+  margin-top: -0.25rem;
+  white-space: nowrap;
+}
+.card-fork:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
 .card-url {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.8rem;
+  font-weight: 600;
   color: var(--color-accent);
   margin-top: auto;
   padding-top: 0.5rem;
@@ -505,7 +544,7 @@ section {
 .connect-link:hover,
 .connect-link:focus-visible {
   border-color: rgba(245, 158, 11, 0.4);
-  box-shadow: 0 0 16px rgba(245, 158, 11, 0.15);
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);
   color: var(--color-text);
 }
 

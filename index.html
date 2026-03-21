@@ -44,6 +44,11 @@
     </div>
   </header>
 
+  <!-- TODO: Replace # with deployed Slidev deck URL -->
+  <div class="container">
+    <a class="slides-cta animate-in delay-3" href="#" target="_blank" rel="noopener">View Slides</a>
+  </div>
+
   <section>
     <div class="container">
       <h2 class="section-title animate-in">About Me</h2>
@@ -108,33 +113,35 @@
           <div class="card featured">
             <div class="card-title">Portal Ecosystem</div>
             <div class="card-desc">Overview of the tools powering the demo  - orchestration, monitoring, and the presentation itself.</div>
-            <div class="card-url">github.com/Myradose/portal</div>
+            <div class="card-url">Myradose/portal</div>
           </div>
         </a>
 
-        <a class="card-link animate-in" href="https://github.com/Myradose/tsk" target="_blank" rel="noopener">
+        <div class="card-link animate-in" onclick="window.open('https://github.com/Myradose/tsk','_blank')" style="cursor:pointer">
           <div class="card">
             <div class="card-title">tsk</div>
-            <div class="card-desc">CLI for creating sandboxed, observable AI agent development environments. Fork of <strong style="white-space:nowrap">dtormoen/tsk&#8209;tsk</strong>.</div>
-            <div class="card-url">github.com/Myradose/tsk</div>
+            <a class="card-fork" href="https://github.com/dtormoen/tsk-tsk" target="_blank" rel="noopener" onclick="event.stopPropagation()">fork of dtormoen/tsk&#8209;tsk</a>
+            <div class="card-desc">CLI for creating sandboxed, observable AI agent development environments.</div>
+            <div class="card-url">Myradose/tsk</div>
           </div>
-        </a>
+        </div>
 
-        <a class="card-link animate-in" href="https://github.com/Myradose/claude-code-viewer" target="_blank" rel="noopener">
+        <div class="card-link animate-in" onclick="window.open('https://github.com/Myradose/pocket-manager','_blank')" style="cursor:pointer">
           <div class="card">
             <div class="card-title">Pocket Manager</div>
-            <div class="card-desc">Web UI for monitoring and spawning parallel agent environments. Fork of <strong style="white-space:nowrap">d&#8209;kimuson/claude&#8209;code&#8209;viewer</strong>.</div>
-            <div class="card-url">github.com/Myradose/claude-code-viewer</div>
+            <a class="card-fork" href="https://github.com/d-kimuson/claude-code-viewer" target="_blank" rel="noopener" onclick="event.stopPropagation()">fork of d&#8209;kimuson/claude&#8209;code&#8209;viewer</a>
+            <div class="card-desc">Web UI for monitoring and spawning parallel agent environments.</div>
+            <div class="card-url">Myradose/pocket-manager</div>
           </div>
-        </a>
+        </div>
 
-        <a class="card-link animate-in" href="https://github.com/Myradose/portal/tree/main/presentation" target="_blank" rel="noopener">
+        <div class="card-link animate-in" onclick="window.open('https://github.com/Myradose/rvatech-2026-slides','_blank')" style="cursor:pointer">
           <div class="card">
             <div class="card-title">Presentation</div>
             <div class="card-desc">Slidev deck with Three.js portal effect and GSAP animations.</div>
-            <div class="card-url">github.com/Myradose/portal/tree/main/presentation</div>
+            <div class="card-url">Myradose/rvatech-2026-slides</div>
           </div>
-        </a>
+        </div>
 
       </div>
     </div>
