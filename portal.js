@@ -3,6 +3,7 @@
 
 import * as THREE from 'three'
 import { createPortalScene, PORTAL_SCENE_DEFAULTS } from './portal-scene.js'
+import { setupScrollAnimations } from './scroll-animations.js'
 
 window.__portalInitialized = true
 
@@ -11,7 +12,6 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
 }
 
 function initPortal() {
-  gsap.registerPlugin(ScrollTrigger)
 
   const overlay = document.getElementById('trace-overlay')
   const content = document.getElementById('content')
@@ -236,26 +236,6 @@ function initPortal() {
     }, { once: true })
   }
 
-  function setupScrollAnimations() {
-    content.classList.remove('preview')
-    document.querySelectorAll('.animate-in').forEach(el => {
-      const rect = el.getBoundingClientRect()
-      if (rect.top < window.innerHeight * 0.85) {
-        gsap.set(el, { y: 0, opacity: 1 })
-      } else {
-        gsap.fromTo(el,
-          { y: 24, opacity: 0 },
-          {
-            y: 0, opacity: 1, duration: 0.6, ease: 'power2.out',
-            scrollTrigger: {
-              trigger: el, start: 'top 85%',
-              toggleActions: 'play none none reverse',
-            },
-          }
-        )
-      }
-    })
-  }
 
   // --- Interaction: tracing ---
   const SEGMENTS = 60
