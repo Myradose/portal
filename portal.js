@@ -22,6 +22,7 @@ function initPortal() {
   const instruction = document.getElementById('trace-instruction')
   const skipBtn = document.getElementById('skip-btn')
   const playBtn = document.getElementById('play-btn')
+  document.documentElement.classList.add('no-scroll')
   document.body.classList.add('no-scroll')
 
   let w = window.innerWidth
@@ -222,6 +223,8 @@ function initPortal() {
         document.body.insertBefore(content, overlay)
         overlay.remove()
         clearPortalStyles()
+        window.scrollTo(0, 0)
+        document.documentElement.classList.remove('no-scroll')
         document.body.classList.remove('no-scroll')
         setupScrollAnimations()
       },
@@ -244,6 +247,8 @@ function initPortal() {
     overlay.classList.add('skip-fade')
     overlay.addEventListener('transitionend', () => {
       overlay.remove()
+      window.scrollTo(0, 0)
+      document.documentElement.classList.remove('no-scroll')
       document.body.classList.remove('no-scroll')
       setupScrollAnimations()
     }, { once: true })
