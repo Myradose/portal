@@ -436,7 +436,7 @@ function initPortal() {
 
   // Resize portal to match new viewport
   let resizeTimer
-  window.addEventListener('resize', () => {
+  function handleResize() {
     w = window.innerWidth
     h = window.innerHeight
     calcSceneDims()
@@ -454,7 +454,13 @@ function initPortal() {
         scene.resizeComposer(SCENE_W, SCENE_H)
       }, 100)
     }
-  })
+  }
+  window.addEventListener('resize', handleResize)
+  // iOS Safari doesn't reliably fire 'resize' on orientation change;
+  // visualViewport.resize fires after layout updates with correct dimensions
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', handleResize)
+  }
 
   // --- Play creation (matches usePortalTimelines.playCreation) ---
   function playCreation() {
