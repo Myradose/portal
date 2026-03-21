@@ -531,6 +531,9 @@ export function createPortalScene(state, opts) {
     camera.position.z = visualDiameter * h / (2 * opts.ringSize * Math.tan((fov / 2) * Math.PI / 180))
     camera.updateProjectionMatrix()
     renderer.setSize(w, h)
+  }
+
+  function resizeComposer(w, h) {
     if (composer) {
       composer.setSize(w * dpr, h * dpr)
     }
@@ -560,7 +563,7 @@ export function createPortalScene(state, opts) {
   function getPortalGroup() { return portalGroup }
   function getRenderer() { return renderer }
 
-  return { init, resize, resetVisuals, dispose, getPortalGroup, getRenderer }
+  return { init, resize, resizeComposer, resetVisuals, dispose, getPortalGroup, getRenderer }
 }
 
 // Vue composable wrapper for Slidev (same API as before)

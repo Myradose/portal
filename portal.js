@@ -301,17 +301,24 @@ function initPortal() {
   playBtn.addEventListener('click', playCreation)
 
   // Resize portal to match new viewport
+  let resizeTimer
   window.addEventListener('resize', () => {
     w = window.innerWidth
     h = window.innerHeight
     calcSceneDims()
     viewportScale = h / SCENE_H
     clipR = (opts.ringSize * CLIP_RADIUS_RATIO * viewportScale) / CONTENT_SCALE_INITIAL
-    if (portalActive || zooming) {
-      scene.resize(SCENE_W, SCENE_H)
-    }
     if (portalActive) {
       updateTraceTextPosition()
+    }
+    if (portalActive || zooming) {
+      // Update camera + renderer immediately to prevent aspect ratio stretch
+      scene.resize(SCENE_W, SCENE_H)
+      // Debounce the expensive composer/bloom resize
+      clearTimeout(resizeTimer)
+      resizeTimer = setTimeout(() => {
+        scene.resizeComposer(SCENE_W, SCENE_H)
+      }, 100)
     }
   })
 
