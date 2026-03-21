@@ -82,7 +82,10 @@ body.no-scroll {
   letter-spacing: 0.05em;
   opacity: 0;
   transition: opacity 0.8s ease;
-  margin-top: var(--trace-text-top, 58vh);
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 .trace-instruction.visible {
   opacity: 1;

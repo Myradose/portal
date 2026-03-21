@@ -223,13 +223,6 @@ function initPortal() {
   let viewportScale = h / SCENE_H
   let clipR = (opts.ringSize * CLIP_RADIUS_RATIO * viewportScale) / CONTENT_SCALE_INITIAL
 
-  function updateTraceTextPosition() {
-    const ringRadiusPx = opts.ringSize * viewportScale * 0.5
-    const gap = Math.min(16, h * 0.02)
-    const fromTop = h / 2 + ringRadiusPx + gap
-    overlay.style.setProperty('--trace-text-top', `${Math.min(fromTop, h - 80)}px`)
-  }
-  updateTraceTextPosition()
   // Clear loading hint and show trace instruction + play button now that portal is ready
   const loadingHint = document.getElementById('loading-hint')
   if (loadingHint) loadingHint.textContent = ''
@@ -442,9 +435,6 @@ function initPortal() {
     calcSceneDims()
     viewportScale = h / SCENE_H
     clipR = (opts.ringSize * CLIP_RADIUS_RATIO * viewportScale) / CONTENT_SCALE_INITIAL
-    if (portalActive) {
-      updateTraceTextPosition()
-    }
     if (portalActive || zooming) {
       // Update camera + renderer immediately to prevent aspect ratio stretch
       scene.resize(SCENE_W, SCENE_H)
