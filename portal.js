@@ -446,8 +446,12 @@ function initPortal() {
     }
   }
   window.addEventListener('resize', handleResize)
-  // iOS Safari doesn't reliably fire 'resize' on orientation change;
-  // visualViewport.resize fires after layout updates with correct dimensions
+  // iOS Safari delays updating dimensions on rotation due to toolbar animation;
+  // listen to both orientationchange (with delay for layout to settle) and
+  // visualViewport resize for reliable detection
+  window.addEventListener('orientationchange', () => {
+    setTimeout(handleResize, 100)
+  })
   if (window.visualViewport) {
     window.visualViewport.addEventListener('resize', handleResize)
   }
