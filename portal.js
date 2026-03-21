@@ -5,10 +5,14 @@ import * as THREE from 'three'
 import { createPortalScene, PORTAL_SCENE_DEFAULTS } from './portal-scene.js'
 import { setupScrollAnimations, startObserving } from './scroll-animations.js'
 
-window.__portalInitialized = true
-
-if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-  initPortal()
+if (!window.__portalBlocked && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  const params = new URLSearchParams(window.location.search)
+  const loadingDelay = params.get('loading')
+  const delay = loadingDelay === '1' ? 5000 : loadingDelay === '2' ? 10000 : 0
+  setTimeout(() => {
+    window.__portalInitialized = true
+    initPortal()
+  }, delay)
 }
 
 function initPortal() {
@@ -115,6 +119,11 @@ function initPortal() {
     overlay.style.setProperty('--trace-text-top', `${h / 2 + ringRadiusPx + 16}px`)
   }
   updateTraceTextPosition()
+  // Clear loading hint and show trace instruction + play button now that portal is ready
+  const loadingHint = document.getElementById('loading-hint')
+  if (loadingHint) loadingHint.textContent = ''
+  instruction.classList.add('visible')
+  gsap.fromTo(playBtn, { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: 'power2.out', onStart() { playBtn.style.pointerEvents = 'auto' } })
   let contentOverlay = null
   let revealTl = null
   let windowShown = false
