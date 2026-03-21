@@ -1,6 +1,6 @@
 # Nested project repos (independent git repos, not part of portal)
 tsk/
-viewer/
+pocket-manager/
 fullstack-test-app/
 presentation/
 
