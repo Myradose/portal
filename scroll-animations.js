@@ -23,12 +23,12 @@ export function setupScrollAnimations() {
   }, { rootMargin: '0px 0px -15% 0px' })
 
   document.querySelectorAll('.animate-in').forEach(el => {
-    gsap.set(el, { y: 24, opacity: 0 })
-    // __observed tracks whether this element has been seen by the observer yet.
-    // On the first intersection callback, elements already in the viewport
-    // get duration: 0 (no animation). After that, __observed is set to true
-    // so future intersections animate normally.
-    el.__observed = false
+    // Don't reset elements already made visible by the portal reveal
+    const alreadyVisible = parseFloat(getComputedStyle(el).opacity) > 0.5
+    if (!alreadyVisible) {
+      gsap.set(el, { y: 24, opacity: 0 })
+    }
+    el.__observed = alreadyVisible
     observer.observe(el)
 
     // Mark as observed after the first callback fires (microtask)

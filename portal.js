@@ -212,11 +212,14 @@ function initPortal() {
     content.style.overflow = ''
   }
 
+  let zooming = false
   function animateZoom() {
     portalActive = false
+    zooming = true
     const proxy = { progress: 0 }
     gsap.timeline({
       onComplete() {
+        zooming = false
         scene.dispose()
         if (contentOverlay) contentOverlay.remove()
         document.body.insertBefore(content, overlay)
@@ -310,14 +313,17 @@ function initPortal() {
 
   // Resize portal to match new viewport
   window.addEventListener('resize', () => {
-    if (!portalActive) return
     w = window.innerWidth
     h = window.innerHeight
     calcSceneDims()
     viewportScale = h / SCENE_H
     clipR = (opts.ringSize * CLIP_RADIUS_RATIO * viewportScale) / CONTENT_SCALE_INITIAL
-    scene.resize(SCENE_W, SCENE_H)
-    updateTraceTextPosition()
+    if (portalActive || zooming) {
+      scene.resize(SCENE_W, SCENE_H)
+    }
+    if (portalActive) {
+      updateTraceTextPosition()
+    }
   })
 
   // --- Play creation (matches usePortalTimelines.playCreation) ---
