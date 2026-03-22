@@ -424,39 +424,22 @@ function initPortal() {
 
   // Resize portal to match new viewport
   let resizeTimer
-  function applyResize(newW, newH) {
-    w = newW
-    h = newH
+  window.addEventListener('resize', () => {
+    w = window.innerWidth
+    h = window.innerHeight
     calcSceneDims()
     viewportScale = h / SCENE_H
     clipR = (opts.ringSize * CLIP_RADIUS_RATIO * viewportScale) / CONTENT_SCALE_INITIAL
     if (portalActive || zooming) {
       // Update camera + renderer immediately to prevent aspect ratio stretch
       scene.resize(SCENE_W, SCENE_H)
-      // Debounce the expensive composer/bloom resize on desktop;
-      // on iOS, resize immediately or bloom render target mismatches
-      if (isIOS) {
+      // Debounce the expensive composer/bloom resize
+      clearTimeout(resizeTimer)
+      resizeTimer = setTimeout(() => {
         scene.resizeComposer(SCENE_W, SCENE_H)
-      } else {
-        clearTimeout(resizeTimer)
-        resizeTimer = setTimeout(() => {
-          scene.resizeComposer(SCENE_W, SCENE_H)
-        }, 100)
-      }
+      }, 100)
     }
-  }
-  // Desktop: window resize is reliable
-  window.addEventListener('resize', () => {
-    applyResize(window.innerWidth, window.innerHeight)
   })
-  // iOS: ResizeObserver on the overlay fires after layout settles with
-  // correct dimensions, bypassing all iOS viewport reporting quirks
-  if (isIOS) {
-    new ResizeObserver((entries) => {
-      const { width, height } = entries[0].contentRect
-      if (width && height) applyResize(Math.round(width), Math.round(height))
-    }).observe(overlay)
-  }
 
   // --- Play creation (matches usePortalTimelines.playCreation) ---
   function playCreation() {
