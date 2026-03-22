@@ -513,7 +513,7 @@ function initPortal() {
       const ccwDist = ((angle - offset) % TAU + TAU) % TAU
       const cwDist = ((offset - angle) % TAU + TAU) % TAU
       // Need at least 1 segment of movement to lock direction
-      if (ccwDist >= TAU / SEGMENTS || cwDist >= TAU / SEGMENTS) {
+      if (ccwDist >= TAU / SEGMENTS && cwDist >= TAU / SEGMENTS) {
         state.arcDirection = ccwDist <= cwDist ? 1 : -1
         directionLocked = true
       } else {
@@ -526,7 +526,7 @@ function initPortal() {
     const seg = Math.floor(normalized / TAU * SEGMENTS) % SEGMENTS
 
     // Detect crossing past arcStart: pointer is behind start while near the beginning
-    if (frontier <= SEGMENTS * 0.1 && normalized > TAU * 0.5) {
+    if (frontier > 0 && frontier <= SEGMENTS * 0.1 && normalized > TAU * 0.5) {
       frontier = 0
       directionLocked = false
       return updateTrace(angle)  // re-enter to detect new direction
@@ -538,7 +538,10 @@ function initPortal() {
       frontier = seg
     } else if (ahead < 0 && ahead > -SEGMENTS * 0.3) {
       frontier = seg
-      if (frontier < 0) frontier = 0
+      if (frontier <= 0) {
+        frontier = 0
+        directionLocked = false
+      }
     }
     targetArcProgress = (frontier / SEGMENTS) * TAU
     if (frontier >= HINT_SEGMENTS) {
