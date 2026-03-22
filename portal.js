@@ -428,32 +428,28 @@ function initPortal() {
   playBtn.addEventListener('click', playCreation)
 
   // Resize portal to match new viewport
+  // iOS Safari delays updating innerWidth/innerHeight on orientation change,
+  // so we debounce all resize paths and re-read dimensions after a short delay.
   let resizeTimer
-  function handleResize() {
+  function applyResize() {
     w = window.innerWidth
     h = window.innerHeight
     calcSceneDims()
     viewportScale = h / SCENE_H
     clipR = (opts.ringSize * CLIP_RADIUS_RATIO * viewportScale) / CONTENT_SCALE_INITIAL
     if (portalActive || zooming) {
-      // Update camera + renderer immediately to prevent aspect ratio stretch
       scene.resize(SCENE_W, SCENE_H)
-      // Debounce the expensive composer/bloom resize
-      clearTimeout(resizeTimer)
-      resizeTimer = setTimeout(() => {
-        scene.resizeComposer(SCENE_W, SCENE_H)
-      }, 100)
+      scene.resizeComposer(SCENE_W, SCENE_H)
     }
   }
-  window.addEventListener('resize', handleResize)
-  // iOS Safari delays updating dimensions on rotation due to toolbar animation;
-  // listen to both orientationchange (with delay for layout to settle) and
-  // visualViewport resize for reliable detection
-  window.addEventListener('orientationchange', () => {
-    setTimeout(handleResize, 100)
-  })
+  function scheduleResize() {
+    clearTimeout(resizeTimer)
+    resizeTimer = setTimeout(applyResize, 120)
+  }
+  window.addEventListener('resize', scheduleResize)
+  window.addEventListener('orientationchange', scheduleResize)
   if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', handleResize)
+    window.visualViewport.addEventListener('resize', scheduleResize)
   }
 
   // --- Play creation (matches usePortalTimelines.playCreation) ---
