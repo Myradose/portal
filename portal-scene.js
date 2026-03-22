@@ -21,7 +21,7 @@ export const PORTAL_SCENE_DEFAULTS = {
   bloomStrength: 0.4,
   bloomRadius: 0.4,
   bloomThreshold: 0.25,
-  coreSize: 0.12,
+  coreSize: 0.01,
   emberSize: 0.06,
   hazeIntensity: 1.3,
   groundY: -1.18,
