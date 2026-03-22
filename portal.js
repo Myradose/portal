@@ -549,7 +549,11 @@ function initPortal() {
       },
       onComplete() {
         throwTween = null
-        scheduleHintRestart()
+        if (!forward && frontier <= 0) {
+          resetToIdle()
+        } else {
+          scheduleHintRestart()
+        }
       },
     })
   }
