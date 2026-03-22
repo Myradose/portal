@@ -586,7 +586,7 @@ function initPortal() {
   btnRow.appendChild(debugBtn)
 
   // Desktop defaults
-  const DESKTOP_REAL = { bloom: true, fakeBloom: false, haze: true, coreSize: 0.12, emberSize: 0.06, hazeIntensity: 1.3, bloomStrength: 0.3, bloomRadius: 0.35, bloomThreshold: 0.25 }
+  const DESKTOP_REAL = { bloom: true, fakeBloom: false, haze: true, coreSize: 0.12, emberSize: 0.06, hazeIntensity: 1.3, bloomStrength: 0.4, bloomRadius: 0.4, bloomThreshold: 0.25 }
   const DESKTOP_FAKE = { bloom: false, fakeBloom: true, haze: true, coreSize: 0.01, emberSize: 0.06, hazeIntensity: 2.2 }
   // iOS defaults
   const IOS_REAL = { bloom: true, fakeBloom: false, haze: false, coreSize: 0.01, emberSize: 0.06, hazeIntensity: 1.3, bloomStrength: 0.45, bloomRadius: 0, bloomThreshold: 0.1, emberFadePower: 0.3 }
