@@ -90,6 +90,8 @@ function initPortal() {
         uGap: { value: 0.45 },
         uArcStart: { value: 0.0 },
         uArcProgress: { value: 0.0 },
+        uHintStart: { value: 0.0 },
+        uHintEnd: { value: 0.0 },
       },
       vertexShader: `
         varying vec2 vPos;
@@ -105,6 +107,8 @@ function initPortal() {
         uniform float uGap;
         uniform float uArcStart;
         uniform float uArcProgress;
+        uniform float uHintStart;
+        uniform float uHintEnd;
         varying vec2 vPos;
         #define TAU 6.2831853
         void main() {
@@ -116,7 +120,11 @@ function initPortal() {
           }
           float segment = fract(angle / TAU * uDashes);
           if (segment < uGap) discard;
-          gl_FragColor = vec4(uColor, uOpacity);
+          // Brighten dashes under the hint cursor
+          float hintRel = mod(angle - uHintStart + TAU, TAU);
+          float hintSpan = mod(uHintEnd - uHintStart + TAU, TAU);
+          float boost = (hintSpan > 0.0 && hintRel < hintSpan) ? 3.0 : 1.0;
+          gl_FragColor = vec4(uColor, min(uOpacity * boost, 1.0));
         }
       `,
     })
@@ -132,7 +140,7 @@ function initPortal() {
   const SEGMENTS = 60
 
   // --- Hint dot animation (looping pointer cue) ---
-  const HINT_ARC_DEG = 30
+  const HINT_ARC_DEG = 60
   const HINT_ARC_RAD = HINT_ARC_DEG * Math.PI / 180
   const HINT_SEGMENTS = Math.round(HINT_ARC_DEG / 360 * SEGMENTS) // 5
   const RING_RADIUS = 1.15
@@ -141,6 +149,9 @@ function initPortal() {
   let hintTimeline = null
   let hintTexture = null
   let hintMaterial = null
+  let cursorSprite = null
+  let cursorTexture = null
+  let cursorMaterial = null
 
   function createHintSprite() {
     const size = 64
@@ -169,43 +180,112 @@ function initPortal() {
     hintSprite.position.z = 0.02
     hintSprite.renderOrder = 11
     scene.getPortalGroup().add(hintSprite)
+
+    // Cursor icon that follows the hint dot
+    const cSize = 64
+    const cCanvas = document.createElement('canvas')
+    cCanvas.width = cSize
+    cCanvas.height = cSize
+    const cCtx = cCanvas.getContext('2d')
+    // Draw pointer cursor at top-left of canvas
+    cCtx.save()
+    cCtx.translate(4, 4)
+    const sc = cSize / 64
+    cCtx.beginPath()
+    cCtx.moveTo(0, 0)
+    cCtx.lineTo(0, 40 * sc)
+    cCtx.lineTo(11 * sc, 31 * sc)
+    cCtx.lineTo(18 * sc, 46 * sc)
+    cCtx.lineTo(24 * sc, 43 * sc)
+    cCtx.lineTo(17 * sc, 28 * sc)
+    cCtx.lineTo(28 * sc, 26 * sc)
+    cCtx.closePath()
+    cCtx.fillStyle = 'rgba(255, 255, 255, 0.9)'
+    cCtx.fill()
+    cCtx.lineWidth = 1.5 * sc
+    cCtx.strokeStyle = 'rgba(0, 0, 0, 0.5)'
+    cCtx.stroke()
+    cCtx.restore()
+
+    cursorTexture = new THREE.CanvasTexture(cCanvas)
+    cursorMaterial = new THREE.SpriteMaterial({
+      map: cursorTexture,
+      transparent: true,
+      depthTest: false,
+      depthWrite: false,
+      opacity: 0,
+    })
+    cursorSprite = new THREE.Sprite(cursorMaterial)
+    cursorSprite.scale.set(0.22, 0.22, 1)
+    // Offset center so the cursor tip (top-left of canvas) sits at the sprite's position
+    cursorSprite.center.set(0.06, 0.94)
+    cursorSprite.position.z = 0.03
+    cursorSprite.renderOrder = 12
+    scene.getPortalGroup().add(cursorSprite)
   }
 
   function startHintAnimation(startAngle) {
     if (hintTimeline) hintTimeline.kill()
     if (!hintSprite) createHintSprite()
 
-    const from = startAngle ?? Math.PI * 0.5 // default: 12 o'clock
-    const to = from + HINT_ARC_RAD
+    let from = startAngle ?? Math.PI * 0.5 // default: 12 o'clock
+
+    function currentFrom() {
+      // Use the current frontier position so the hint stays with the user
+      // Before tracing starts, stay at the initial position
+      if (state.arcStart == null) return startAngle ?? Math.PI * 0.5
+      return state.arcStart + (frontier / SEGMENTS) * TAU
+    }
+
+    function positionCursor(angle) {
+      cursorSprite.position.x = Math.cos(angle) * RING_RADIUS
+      cursorSprite.position.y = Math.sin(angle) * RING_RADIUS
+    }
 
     // Position at start
     hintSprite.position.x = Math.cos(from) * RING_RADIUS
     hintSprite.position.y = Math.sin(from) * RING_RADIUS
+    positionCursor(from)
     hintMaterial.opacity = 0
+    cursorMaterial.opacity = 0
 
-    const proxy = { angle: from }
-    hintTimeline = gsap.timeline({ repeat: -1, repeatDelay: 1.0 })
+    // Use a 0-1 progress proxy so the arc length is always HINT_ARC_RAD
+    // regardless of where `from` is when each loop starts
+    const proxy = { t: 0 }
+    hintTimeline = gsap.timeline({ repeat: -1, repeatDelay: 1.0,
+      onRepeat() {
+        // Update start position to current frontier each loop
+        from = currentFrom()
+        proxy.t = 0
+        positionAt(0)
+      },
+    })
+
+    const uniforms = guideRing.mat.uniforms
+
+    function positionAt(t) {
+      const a = from + t * HINT_ARC_RAD
+      hintSprite.position.x = Math.cos(a) * RING_RADIUS
+      hintSprite.position.y = Math.sin(a) * RING_RADIUS
+      positionCursor(a)
+      // Light up dashes from `from` to current hint position
+      uniforms.uHintStart.value = from
+      uniforms.uHintEnd.value = a
+    }
 
     // Fade in
-    hintTimeline.to(hintMaterial, { opacity: 0.9, duration: 0.3, ease: 'power2.out' }, 0)
+    hintTimeline.to(cursorMaterial, { opacity: 0.9, duration: 0.3, ease: 'power2.out' }, 0)
     // Trace arc
     hintTimeline.to(proxy, {
-      angle: to,
+      t: 1,
       duration: 1.2,
       ease: 'power2.inOut',
-      onUpdate() {
-        hintSprite.position.x = Math.cos(proxy.angle) * RING_RADIUS
-        hintSprite.position.y = Math.sin(proxy.angle) * RING_RADIUS
-      },
+      onUpdate() { positionAt(proxy.t) },
     }, 0.3)
-    // Fade out
-    hintTimeline.to(hintMaterial, { opacity: 0, duration: 0.3, ease: 'power2.in' }, 1.5)
-    // Reset position for next loop
-    hintTimeline.call(() => {
-      proxy.angle = from
-      hintSprite.position.x = Math.cos(from) * RING_RADIUS
-      hintSprite.position.y = Math.sin(from) * RING_RADIUS
-    }, [], 1.8)
+    // Fade out — also clear the hint highlight
+    hintTimeline.to(cursorMaterial, { opacity: 0, duration: 0.3, ease: 'power2.in',
+      onComplete() { uniforms.uHintStart.value = 0; uniforms.uHintEnd.value = 0 },
+    }, 1.5)
   }
 
   function relocateHint(angle) {
@@ -228,6 +308,21 @@ function initPortal() {
           hintSprite = null
           hintMaterial = null
           hintTexture = null
+        },
+      })
+    }
+    if (cursorSprite) {
+      gsap.to(cursorMaterial, {
+        opacity: 0,
+        duration: 0.2,
+        ease: 'power2.out',
+        onComplete() {
+          scene.getPortalGroup().remove(cursorSprite)
+          cursorMaterial.dispose()
+          cursorTexture.dispose()
+          cursorSprite = null
+          cursorMaterial = null
+          cursorTexture = null
         },
       })
     }
