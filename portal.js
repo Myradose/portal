@@ -66,6 +66,7 @@ function initPortal() {
     phase: 0,
     arcProgress: 0,
     arcStart: null,
+    arcDirection: 0, // 0 = undecided, +1 = CCW, -1 = CW
     sparksActivated: 0,
     coreNeedsFullCircle: false,
   }
@@ -90,6 +91,7 @@ function initPortal() {
         uGap: { value: 0.45 },
         uArcStart: { value: 0.0 },
         uArcProgress: { value: 0.0 },
+        uArcDirection: { value: 1.0 },
         uHintStart: { value: 0.0 },
         uHintEnd: { value: 0.0 },
       },
@@ -107,6 +109,7 @@ function initPortal() {
         uniform float uGap;
         uniform float uArcStart;
         uniform float uArcProgress;
+        uniform float uArcDirection;
         uniform float uHintStart;
         uniform float uHintEnd;
         varying vec2 vPos;
@@ -115,14 +118,16 @@ function initPortal() {
           float angle = atan(vPos.y, vPos.x);
           // Discard fragments in the already-traced arc
           if (uArcProgress > 0.0) {
-            float rel = mod(angle - uArcStart + TAU, TAU);
+            float rel = mod((angle - uArcStart) * uArcDirection + TAU, TAU);
             if (rel < uArcProgress) discard;
           }
           float segment = fract(angle / TAU * uDashes);
           if (segment < uGap) discard;
-          // Brighten dashes under the hint cursor
-          float hintRel = mod(angle - uHintStart + TAU, TAU);
-          float hintSpan = mod(uHintEnd - uHintStart + TAU, TAU);
+          // Brighten dashes under the hint cursor (direction-independent)
+          float rawSpan = mod(uHintEnd - uHintStart + TAU, TAU);
+          float hintDir = rawSpan <= 3.14159 ? 1.0 : -1.0;
+          float hintRel = mod((angle - uHintStart) * hintDir + TAU, TAU);
+          float hintSpan = mod((uHintEnd - uHintStart) * hintDir + TAU, TAU);
           float boost = (hintSpan > 0.0 && hintRel < hintSpan) ? 3.0 : 1.0;
           gl_FragColor = vec4(uColor, min(uOpacity * boost, 1.0));
         }
@@ -235,7 +240,8 @@ function initPortal() {
       // Use the current frontier position so the hint stays with the user
       // Before tracing starts, stay at the initial position
       if (state.arcStart == null) return startAngle ?? Math.PI * 0.5
-      return state.arcStart + (frontier / SEGMENTS) * TAU
+      const dir = state.arcDirection || 1
+      return state.arcStart + dir * (frontier / SEGMENTS) * TAU
     }
 
     function positionCursor(angle) {
@@ -265,7 +271,8 @@ function initPortal() {
     const uniforms = guideRing.mat.uniforms
 
     function positionAt(t) {
-      const a = from + t * HINT_ARC_RAD
+      const dir = state.arcDirection || 1
+      const a = from + dir * t * HINT_ARC_RAD
       hintSprite.position.x = Math.cos(a) * RING_RADIUS
       hintSprite.position.y = Math.sin(a) * RING_RADIUS
       positionCursor(a)
@@ -297,6 +304,9 @@ function initPortal() {
     if (!hintTimeline) return
     hintTimeline.kill()
     hintTimeline = null
+    // Clear hint highlight uniforms (timeline's onComplete won't fire after kill)
+    guideRing.mat.uniforms.uHintStart.value = 0
+    guideRing.mat.uniforms.uHintEnd.value = 0
     if (hintSprite) {
       gsap.to(hintMaterial, {
         opacity: 0,
@@ -479,6 +489,7 @@ function initPortal() {
 
   // --- Interaction: tracing ---
   let frontier = 0
+  let directionLocked = false
   let tracing = false
   let targetArcProgress = 0
   let smoothArcProgress = 0
@@ -497,12 +508,37 @@ function initPortal() {
 
   function updateTrace(angle) {
     const offset = state.arcStart ?? 0
-    const normalized = (((angle - offset) % TAU) + TAU) % TAU
+
+    if (!directionLocked) {
+      const ccwDist = ((angle - offset) % TAU + TAU) % TAU
+      const cwDist = ((offset - angle) % TAU + TAU) % TAU
+      // Need at least 1 segment of movement to lock direction
+      if (ccwDist >= TAU / SEGMENTS || cwDist >= TAU / SEGMENTS) {
+        state.arcDirection = ccwDist <= cwDist ? 1 : -1
+        directionLocked = true
+      } else {
+        return
+      }
+    }
+
+    const dir = state.arcDirection
+    const normalized = (((angle - offset) * dir) % TAU + TAU) % TAU
     const seg = Math.floor(normalized / TAU * SEGMENTS) % SEGMENTS
+
+    // Detect crossing past arcStart: pointer is behind start while near the beginning
+    if (frontier <= SEGMENTS * 0.1 && normalized > TAU * 0.5) {
+      frontier = 0
+      directionLocked = false
+      return updateTrace(angle)  // re-enter to detect new direction
+    }
+
     // Only advance if within a few segments ahead of the frontier
     const ahead = seg - frontier
     if (ahead > 0 && ahead < SEGMENTS * 0.3) {
       frontier = seg
+    } else if (ahead < 0 && ahead > -SEGMENTS * 0.3) {
+      frontier = seg
+      if (frontier < 0) frontier = 0
     }
     targetArcProgress = (frontier / SEGMENTS) * TAU
     if (frontier >= HINT_SEGMENTS) {
@@ -520,6 +556,8 @@ function initPortal() {
     if (state.phase === 0) {
       state.phase = 1
       state.arcStart = getAngle(e)
+      state.arcDirection = 0
+      directionLocked = false
       guideRing.mat.uniforms.uArcStart.value = state.arcStart
       instruction.classList.add('hidden')
       relocateHint(state.arcStart)
@@ -532,9 +570,29 @@ function initPortal() {
     updateTrace(getAngle(e))
   })
   const endTrace = () => {
-    if (tracing && state.phase === 1 && frontier > 0 && frontier < HINT_SEGMENTS && hintTimeline) {
-      const frontierAngle = (state.arcStart ?? 0) + (frontier / SEGMENTS) * TAU
-      relocateHint(frontierAngle)
+    if (tracing && state.phase === 1) {
+      if (frontier <= 0) {
+        // Full reset: user backtracked all the way and released
+        frontier = 0
+        state.phase = 0
+        state.arcStart = null
+        state.arcDirection = 0
+        directionLocked = false
+        targetArcProgress = 0
+        smoothArcProgress = 0
+        state.arcProgress = 0
+        // Force guide ring uniforms immediately (smoothLoop skips phase !== 1)
+        guideRing.mat.uniforms.uArcProgress.value = 0
+        guideRing.mat.uniforms.uArcStart.value = 0
+        guideRing.mat.uniforms.uArcDirection.value = 1
+        instruction.classList.remove('hidden')
+        startHintAnimation()  // restart from default 12 o'clock
+      } else if (frontier < HINT_SEGMENTS) {
+        // Partial trace -- restart hint at frontier (even if previously killed)
+        const dir = state.arcDirection || 1
+        const frontierAngle = (state.arcStart ?? 0) + dir * (frontier / SEGMENTS) * TAU
+        startHintAnimation(frontierAngle)
+      }
     }
     tracing = false
   }
@@ -573,6 +631,7 @@ function initPortal() {
     const midTrace = state.phase === 1
     const startArc = midTrace ? state.arcProgress : 0
     if (!midTrace) state.phase = 1
+    if (!state.arcDirection) state.arcDirection = 1
     playingCreation = true
     tracing = false
     instruction.classList.add('hidden')
@@ -622,6 +681,7 @@ function initPortal() {
 
   function setReadyState() {
     state.phase = 2
+    if (!state.arcDirection) state.arcDirection = 1
     state.arcProgress = TAU
     state.sparksActivated = Infinity
     state.coreNeedsFullCircle = true
@@ -645,6 +705,7 @@ function initPortal() {
       state.arcProgress = smoothArcProgress
       // Hide traced portion of guide ring
       guideRing.mat.uniforms.uArcProgress.value = smoothArcProgress
+      guideRing.mat.uniforms.uArcDirection.value = state.arcDirection || 1
     } else if (state.phase === 2) {
       if (completionTime === 0) completionTime = t
       if (t - completionTime > 0.4) {
