@@ -125,12 +125,14 @@ function createSparkSystem(state, opts, glowTex, portalGroup) {
   portalGroup.add(trailMesh)
 
   const emberPositions = new Float32Array(SPARK_COUNT * 3)
+  const emberColors = new Float32Array(SPARK_COUNT * 3)
   const emberGeo = new THREE.BufferGeometry()
   emberGeo.setAttribute('position', new THREE.BufferAttribute(emberPositions, 3))
+  emberGeo.setAttribute('color', new THREE.BufferAttribute(emberColors, 3))
   const emberMat = new THREE.PointsMaterial({
     map: glowTex,
-    color: 0xee8811,
     size: opts.emberSize,
+    vertexColors: true,
     transparent: true,
     opacity: 0.6,
     blending: THREE.AdditiveBlending,
@@ -142,12 +144,14 @@ function createSparkSystem(state, opts, glowTex, portalGroup) {
 
   // Glow halo layer (fake bloom for iOS)
   const glowPositions = new Float32Array(SPARK_COUNT * 3)
+  const glowColors = new Float32Array(SPARK_COUNT * 3)
   const glowGeo = new THREE.BufferGeometry()
   glowGeo.setAttribute('position', new THREE.BufferAttribute(glowPositions, 3))
+  glowGeo.setAttribute('color', new THREE.BufferAttribute(glowColors, 3))
   const glowMat = new THREE.PointsMaterial({
     map: glowTex,
-    color: 0xee8833,
     size: opts.glowSize,
+    vertexColors: true,
     transparent: true,
     opacity: opts.glowOpacity,
     blending: THREE.AdditiveBlending,
@@ -170,7 +174,9 @@ function createSparkSystem(state, opts, glowTex, portalGroup) {
     const tPos = trailGeo.attributes.position.array
     const tCol = trailGeo.attributes.color.array
     const ePos = emberGeo.attributes.position.array
+    const eCol = emberGeo.attributes.color.array
     const gPos = glowGeo.attributes.position.array
+    const gCol = glowGeo.attributes.color.array
 
     for (let i = 0; i < SPARK_COUNT; i++) {
       sparkAge[i] += dt
@@ -180,7 +186,9 @@ function createSparkSystem(state, opts, glowTex, portalGroup) {
           spawn(i, t)
         } else {
           ePos[i * 3] = 0; ePos[i * 3 + 1] = 0; ePos[i * 3 + 2] = -999
+          eCol[i * 3] = 0; eCol[i * 3 + 1] = 0; eCol[i * 3 + 2] = 0
           gPos[i * 3] = 0; gPos[i * 3 + 1] = 0; gPos[i * 3 + 2] = -999
+          gCol[i * 3] = 0; gCol[i * 3 + 1] = 0; gCol[i * 3 + 2] = 0
           tPos[i * 6] = 0; tPos[i * 6 + 1] = 0; tPos[i * 6 + 2] = -999
           tPos[i * 6 + 3] = 0; tPos[i * 6 + 4] = 0; tPos[i * 6 + 5] = -999
           tCol[i * 6] = 0; tCol[i * 6 + 1] = 0; tCol[i * 6 + 2] = 0
@@ -264,16 +272,27 @@ function createSparkSystem(state, opts, glowTex, portalGroup) {
         ePos[i * 3] = hx
         ePos[i * 3 + 1] = hy
         ePos[i * 3 + 2] = hz
+        // ember color: base amber * fade * dim
+        const ef = fade * dim
+        eCol[i * 3]     = 0.93 * ef  // 0xee -> 0.93
+        eCol[i * 3 + 1] = 0.53 * ef  // 0x88 -> 0.53
+        eCol[i * 3 + 2] = 0.07 * ef  // 0x11 -> 0.07
         gPos[i * 3] = hx
         gPos[i * 3 + 1] = hy
         gPos[i * 3 + 2] = hz - 0.001
+        // glow color: warmer amber * fade * dim
+        gCol[i * 3]     = 0.93 * ef
+        gCol[i * 3 + 1] = 0.53 * ef
+        gCol[i * 3 + 2] = 0.20 * ef
       } else {
         ePos[i * 3] = 0
         ePos[i * 3 + 1] = 0
         ePos[i * 3 + 2] = -999
+        eCol[i * 3] = 0; eCol[i * 3 + 1] = 0; eCol[i * 3 + 2] = 0
         gPos[i * 3] = 0
         gPos[i * 3 + 1] = 0
         gPos[i * 3 + 2] = -999
+        gCol[i * 3] = 0; gCol[i * 3 + 1] = 0; gCol[i * 3 + 2] = 0
       }
     }
 
@@ -288,7 +307,9 @@ function createSparkSystem(state, opts, glowTex, portalGroup) {
     trailGeo.attributes.position.needsUpdate = true
     trailGeo.attributes.color.needsUpdate = true
     emberGeo.attributes.position.needsUpdate = true
+    emberGeo.attributes.color.needsUpdate = true
     glowGeo.attributes.position.needsUpdate = true
+    glowGeo.attributes.color.needsUpdate = true
   }
 
   function reset() { killAll() }
