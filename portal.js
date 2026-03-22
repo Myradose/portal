@@ -707,7 +707,11 @@ function initPortal() {
 
     const midTrace = state.phase === 1
     const startArc = midTrace ? state.arcProgress : 0
-    if (!midTrace) state.phase = 1
+    if (!midTrace) {
+      state.phase = 1
+      state.arcStart = Math.PI * 0.5
+      guideRing.mat.uniforms.uArcStart.value = Math.PI * 0.5
+    }
     if (!state.arcDirection) state.arcDirection = 1
     playingCreation = true
     tracing = false
@@ -734,6 +738,8 @@ function initPortal() {
         state.arcProgress = proxy.arc
         smoothArcProgress = proxy.arc
         targetArcProgress = proxy.arc
+        guideRing.mat.uniforms.uArcProgress.value = proxy.arc
+        guideRing.mat.uniforms.uArcDirection.value = state.arcDirection || 1
       },
     })
     tl.call(() => showPortalWindow(), [], showWindowAt)
