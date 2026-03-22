@@ -758,6 +758,8 @@ function initPortal() {
         targetArcProgress = proxy.arc
         smoothArcProgress = proxy.arc
         state.arcProgress = proxy.arc
+        guideRing.mat.uniforms.uArcProgress.value = proxy.arc
+        guideRing.mat.uniforms.uArcDirection.value = state.arcDirection || 1
       },
       onComplete() { setReadyState() },
     })
