@@ -693,8 +693,8 @@ function initPortal() {
   addSlider('Ember opacity', () => opts.fakeBloomEmberOpacity, v => opts.fakeBloomEmberOpacity = v, 0.1, 1.0, 0.05)
   addSlider('Core opacity', () => opts.fakeBloomCoreOpacity, v => opts.fakeBloomCoreOpacity = v, 0.1, 1.0, 0.05)
   addSlider('Trail boost', () => opts.trailBoost, v => opts.trailBoost = v, 1.0, 3.0, 0.1)
-  addSlider('Ember fade', () => opts.emberFadePower, v => opts.emberFadePower = v, 1.0, 6.0, 0.5)
-  addSlider('Trail fade', () => opts.trailFadePower, v => opts.trailFadePower = v, 1.0, 6.0, 0.5)
+  addSlider('Ember fade', () => opts.emberFadePower, v => opts.emberFadePower = v, 0.3, 6.0, 0.1)
+  addSlider('Trail fade', () => opts.trailFadePower, v => opts.trailFadePower = v, 0.3, 6.0, 0.1)
 
   addSection('HAZE')
   addSlider('Haze intensity', () => opts.hazeIntensity, v => opts.hazeIntensity = v, 0.0, 5.0, 0.1)
