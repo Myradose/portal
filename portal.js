@@ -550,6 +550,18 @@ function initPortal() {
 
   smoothLoop()
 
+  // --- Debug panel ---
+  const panel = document.createElement('div')
+  Object.assign(panel.style, {
+    position: 'fixed', top: '50px', right: '16px', zIndex: '9999',
+    background: 'rgba(0, 0, 0, 0.88)', padding: '12px 14px', borderRadius: '8px',
+    color: '#e8e8ed', fontFamily: 'Inter, system-ui, sans-serif', fontSize: '11px',
+    maxHeight: '80vh', overflowY: 'auto', overflowX: 'hidden', width: '260px',
+    display: 'none', backdropFilter: 'blur(8px)',
+    border: '1px solid rgba(245, 158, 11, 0.15)', boxSizing: 'border-box',
+  })
+  document.body.appendChild(panel)
+
   // --- Top-right button row ---
   const btnRow = document.createElement('div')
   Object.assign(btnRow.style, {
@@ -583,6 +595,7 @@ function initPortal() {
   const modeButtons = []
 
   let activePreset = null
+  const sliders = []
 
   function refreshSliders() {
     for (const s of sliders) {
@@ -620,18 +633,6 @@ function initPortal() {
 
   // Highlight initial mode
   applyMode(isIOS ? IOS_FAKE : DESKTOP_FAKE)
-
-  // --- Debug panel (press D to toggle) ---
-  const panel = document.createElement('div')
-  Object.assign(panel.style, {
-    position: 'fixed', top: '50px', right: '16px', zIndex: '9999',
-    background: 'rgba(0, 0, 0, 0.88)', padding: '12px 14px', borderRadius: '8px',
-    color: '#e8e8ed', fontFamily: 'Inter, system-ui, sans-serif', fontSize: '11px',
-    maxHeight: '80vh', overflowY: 'auto', overflowX: 'hidden', width: '260px',
-    display: 'none', backdropFilter: 'blur(8px)',
-    border: '1px solid rgba(245, 158, 11, 0.15)', boxSizing: 'border-box',
-  })
-  document.body.appendChild(panel)
 
   function addSection(label) {
     const h = document.createElement('div')
@@ -671,7 +672,6 @@ function initPortal() {
     return input
   }
 
-  const sliders = []
   const defaults = { ...PORTAL_SCENE_DEFAULTS }
 
   function resetAll() {
