@@ -7,6 +7,7 @@ presentation/
 # Build artifacts and misc
 architecture/
 backup-portal-v1/
+dist/
 node_modules/
 
 # Screenshots and test images

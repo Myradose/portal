@@ -1,5 +1,6 @@
 // Scroll-triggered entry animations using IntersectionObserver + GSAP.
 // Handles resize natively — no teardown/rebuild needed.
+import gsap from 'gsap'
 
 let observer = null
 

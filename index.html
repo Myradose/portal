@@ -249,42 +249,7 @@
 
 </div>
 
-<!-- ====== Three.js Portal ====== -->
-<script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12/dist/gsap.min.js"></script>
-<script type="importmap">
-{
-  "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.183/build/three.module.min.js",
-    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.183/examples/jsm/",
-    "three/examples/jsm/": "https://cdn.jsdelivr.net/npm/three@0.183/examples/jsm/"
-  }
-}
-</script>
+<!-- ====== Portal ====== -->
 <script type="module" src="portal.js"></script>
-<!-- Progressive loading hints if portal is slow -->
-<!-- Debug: add ?loading=1 for stage 1, ?loading=2 for stage 2, ?loading=block to prevent portal init -->
-<script>
-(function() {
-  var params = new URLSearchParams(window.location.search);
-  var debugLoading = params.get('loading');
-  if (debugLoading === 'block') {
-    window.__portalBlocked = true;
-  }
-  var hint = document.getElementById('loading-hint');
-  // "Loading portal..." is already in the HTML so it's visible immediately.
-  // After 6s, nudge the user toward Skip if still not ready.
-  var t2 = setTimeout(function() {
-    if (!window.__portalInitialized && hint) {
-      hint.textContent = 'Taking longer than usual. You can press Skip below.';
-    }
-  }, 6000);
-  var check = setInterval(function() {
-    if (window.__portalInitialized) {
-      clearTimeout(t2);
-      clearInterval(check);
-    }
-  }, 200);
-})();
-</script>
 </body>
 </html>

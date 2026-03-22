@@ -2,19 +2,12 @@
 // All Three.js rendering lives in portal-scene.js (direct port of usePortalScene.ts).
 
 import * as THREE from 'three'
+import gsap from 'gsap'
 import { createPortalScene, PORTAL_SCENE_DEFAULTS } from './portal-scene.js'
 import { setupScrollAnimations, startObserving } from './scroll-animations.js'
 
-// Signal that the module has loaded (three.js + deps fetched),
-// but don't set __portalInitialized until the scene is actually ready
-window.__portalModuleLoaded = true
-if (!window.__portalBlocked && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-  const params = new URLSearchParams(window.location.search)
-  const loadingDelay = params.get('loading')
-  const delay = loadingDelay === '1' ? 5000 : loadingDelay === '2' ? 10000 : 0
-  setTimeout(() => {
-    initPortal()
-  }, delay)
+if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  initPortal()
 }
 
 function initPortal() {
@@ -225,8 +218,7 @@ function initPortal() {
   let viewportScale = h / SCENE_H
   let clipR = (opts.ringSize * CLIP_RADIUS_RATIO * viewportScale) / CONTENT_SCALE_INITIAL
 
-  // Scene is ready — clear loading hint and signal initialization complete
-  window.__portalInitialized = true
+  // Scene is ready — clear loading hint
   const loadingHint = document.getElementById('loading-hint')
   if (loadingHint) loadingHint.textContent = ''
   instruction.classList.add('visible')
