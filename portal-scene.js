@@ -238,7 +238,7 @@ function createSparkSystem(state, opts, glowTex, portalGroup) {
       const dist = Math.sqrt(hx * hx + hy * hy)
       const distFromRing = Math.max(0, dist - RING_RADIUS)
       const rs = Math.min(1, distFromRing * 7.0)
-      const fade = Math.max(0, 1 - life * life)
+      const fade = Math.max(0, 1 - life * life * life)
 
       const dim = sparkGrounded[i] ? opts.groundDim : 1.0
 
