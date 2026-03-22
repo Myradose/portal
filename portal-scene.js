@@ -75,10 +75,15 @@ function createSparkSystem(state, opts, glowTex, portalGroup) {
 
   function spawn(i, t) {
     let ringAngle
+    let tangentDir = 1
     if (state.phase === 1 || state.phase === 3) {
-      ringAngle = (state.arcStart ?? DEFAULT_ARC_START) + Math.random() * state.arcProgress
+      const dir = state.arcDirection || 1
+      tangentDir = dir
+      ringAngle = (state.arcStart ?? DEFAULT_ARC_START) + dir * Math.random() * state.arcProgress
     } else {
-      ringAngle = t * opts.ringSpeed + Math.random() * Math.PI * 2
+      const dir = state.arcDirection || 1
+      tangentDir = dir
+      ringAngle = t * opts.ringSpeed * dir + Math.random() * Math.PI * 2
     }
     const r = RING_RADIUS + (Math.random() - 0.5) * 0.06
     sparkX[i] = Math.cos(ringAngle) * r
@@ -92,8 +97,8 @@ function createSparkSystem(state, opts, glowTex, portalGroup) {
     const ry = Math.sin(ringAngle)
     const radialKick = 0.1 + Math.random() * 0.3
     const jitter = (Math.random() - 0.5) * 0.2
-    sparkVx[i] = tx * tangentSpeed * (0.15 + Math.random() * 0.15) + rx * radialKick + jitter
-    sparkVy[i] = ty * tangentSpeed * (0.15 + Math.random() * 0.15) + ry * radialKick + jitter
+    sparkVx[i] = tangentDir * tx * tangentSpeed * (0.15 + Math.random() * 0.15) + rx * radialKick + jitter
+    sparkVy[i] = tangentDir * ty * tangentSpeed * (0.15 + Math.random() * 0.15) + ry * radialKick + jitter
 
     sparkAge[i] = 0
     sparkMaxAge[i] = 0.12 + Math.random() * 0.35
@@ -372,7 +377,8 @@ function createCoreSystem(state, opts, glowTex, portalGroup) {
         if (state.arcProgress < 0.01) {
           cPos[i * 3 + 2] = -999
         } else {
-          const angle = (state.arcStart ?? DEFAULT_ARC_START) + Math.random() * state.arcProgress
+          const dir = state.arcDirection || 1
+          const angle = (state.arcStart ?? DEFAULT_ARC_START) + dir * Math.random() * state.arcProgress
           const r = RING_RADIUS + (Math.random() - 0.5) * 0.06
           cPos[i * 3] = Math.cos(angle) * r
           cPos[i * 3 + 1] = Math.sin(angle) * r
@@ -392,8 +398,9 @@ function createCoreSystem(state, opts, glowTex, portalGroup) {
         }
         coreGeo.attributes.position.needsUpdate = true
       }
-      coreParticles.rotation.z = t * opts.ringSpeed
-      coreGlowMesh.rotation.z = t * opts.ringSpeed
+      const rotDir = state.arcDirection || 1
+      coreParticles.rotation.z = t * opts.ringSpeed * rotDir
+      coreGlowMesh.rotation.z = t * opts.ringSpeed * rotDir
     }
     coreMat.size = opts.coreSize
     if (opts.fakeBloom) {
@@ -488,6 +495,7 @@ function createHazeSystem(state, opts, portalGroup) {
     map: { value: opts.fakeBloom ? fakeHazeTex : realHazeTex },
     uArcStart: { value: DEFAULT_ARC_START },
     uArcProgress: { value: 0.0 },
+    uArcDirection: { value: 1.0 },
     uSoftEdge: { value: opts.fakeBloom ? FAKE_SOFT : REAL_SOFT },
     uIntensity: { value: 1.0 },
   }
@@ -507,6 +515,7 @@ function createHazeSystem(state, opts, portalGroup) {
       uniform sampler2D map;
       uniform float uArcStart;
       uniform float uArcProgress;
+      uniform float uArcDirection;
       uniform float uSoftEdge;
       uniform float uIntensity;
       varying vec2 vUv;
@@ -518,7 +527,7 @@ function createHazeSystem(state, opts, portalGroup) {
 
         vec2 centered = vUv - 0.5;
         float angle = atan(centered.y, centered.x);
-        float rel = mod(angle - uArcStart + TAU, TAU);
+        float rel = mod((angle - uArcStart) * uArcDirection + TAU, TAU);
 
         if (uArcProgress >= TAU) {
           gl_FragColor = tex * uIntensity;
@@ -555,6 +564,7 @@ function createHazeSystem(state, opts, portalGroup) {
       hazeMesh.visible = true
       uniforms.uArcStart.value = state.arcStart ?? DEFAULT_ARC_START
       uniforms.uArcProgress.value = state.arcProgress
+      uniforms.uArcDirection.value = state.arcDirection || 1
     } else {
       hazeMesh.visible = false
     }
