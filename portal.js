@@ -200,10 +200,10 @@ function initPortal() {
     cCtx.lineTo(17 * sc, 28 * sc)
     cCtx.lineTo(28 * sc, 26 * sc)
     cCtx.closePath()
-    cCtx.fillStyle = 'rgba(180, 180, 180, 0.9)'
+    cCtx.fillStyle = 'rgba(255, 255, 255, 0.9)'
     cCtx.fill()
     cCtx.lineWidth = 1.5 * sc
-    cCtx.strokeStyle = 'rgba(40, 40, 40, 0.6)'
+    cCtx.strokeStyle = 'rgba(0, 0, 0, 0.5)'
     cCtx.stroke()
     cCtx.restore()
 
@@ -220,8 +220,9 @@ function initPortal() {
     // Offset center so the cursor tip (top-left of canvas) sits at the sprite's position
     cursorSprite.center.set(0.06, 0.94)
     cursorSprite.position.z = 0.03
+    cursorSprite.layers.set(1)
     cursorSprite.renderOrder = 12
-    scene.getPortalGroup().add(cursorSprite)
+    scene.getNoBloomGroup().add(cursorSprite)
   }
 
   function startHintAnimation(startAngle) {
@@ -317,7 +318,7 @@ function initPortal() {
         duration: 0.2,
         ease: 'power2.out',
         onComplete() {
-          scene.getPortalGroup().remove(cursorSprite)
+          scene.getNoBloomGroup().remove(cursorSprite)
           cursorMaterial.dispose()
           cursorTexture.dispose()
           cursorSprite = null

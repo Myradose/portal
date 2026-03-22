@@ -589,16 +589,21 @@ function createHazeSystem(state, opts, portalGroup) {
 // --- Main factory ---
 
 export function createPortalScene(state, opts) {
+  const BLOOM_LAYER = 0
+  const NO_BLOOM_LAYER = 1
+
   let renderer = null
   let composer = null
   let bloomPass = null
   let portalGroup = null
+  let noBloomGroup = null
   let animationId = 0
   let glowTex = null
   let sparks = null
   let core = null
   let haze = null
   let camera = null
+  let scene = null
   let dpr = 1
   const fov = 50
   const visualDiameter = 3.0
@@ -607,7 +612,7 @@ export function createPortalScene(state, opts) {
     if (renderer) return
 
     dpr = opts.dpr ?? Math.min(window.devicePixelRatio || 1, 2)
-    const scene = new THREE.Scene()
+    scene = new THREE.Scene()
     const aspect = w / h
     camera = new THREE.PerspectiveCamera(fov, aspect, 0.1, 100)
     camera.position.z = visualDiameter * h / (2 * opts.ringSize * Math.tan((fov / 2) * Math.PI / 180))
@@ -634,10 +639,21 @@ export function createPortalScene(state, opts) {
       opts.bloomThreshold,
     )
     composer.addPass(bloomPass)
+
+    // Second render pass for no-bloom objects, composited after bloom
+    const noBloomCamera = camera.clone()
+    noBloomCamera.layers.set(NO_BLOOM_LAYER)
+    const noBloomPass = new RenderPass(scene, noBloomCamera)
+    noBloomPass.clear = false
+    composer.addPass(noBloomPass)
+
     composer.addPass(new OutputPass())
 
     portalGroup = new THREE.Group()
     scene.add(portalGroup)
+
+    noBloomGroup = new THREE.Group()
+    scene.add(noBloomGroup)
 
     glowTex = createGlowTexture()
     sparks = createSparkSystem(state, opts, glowTex, portalGroup)
@@ -660,6 +676,9 @@ export function createPortalScene(state, opts) {
       bloomPass.threshold = opts.bloomThreshold
 
       if (opts.bloom) {
+        noBloomCamera.position.copy(camera.position)
+        noBloomCamera.quaternion.copy(camera.quaternion)
+        noBloomCamera.projectionMatrix.copy(camera.projectionMatrix)
         composer.render()
       } else {
         renderer.render(scene, camera)
@@ -712,9 +731,10 @@ export function createPortalScene(state, opts) {
   }
 
   function getPortalGroup() { return portalGroup }
+  function getNoBloomGroup() { return noBloomGroup }
   function getRenderer() { return renderer }
 
-  return { init, resize, resizeComposer, resetVisuals, dispose, getPortalGroup, getRenderer }
+  return { init, resize, resizeComposer, resetVisuals, dispose, getPortalGroup, getNoBloomGroup, getRenderer }
 }
 
 // Vue composable wrapper for Slidev (same API as before)
