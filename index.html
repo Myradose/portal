@@ -24,7 +24,7 @@
   <div class="trace-ui">
     <p class="trace-instruction" id="trace-instruction">Trace the portal</p>
   </div>
-  <p class="loading-hint" id="loading-hint"></p>
+  <p class="loading-hint" id="loading-hint">Loading portal...</p>
   <div class="overlay-controls">
     <button class="overlay-btn" id="play-btn">Play</button>
     <button class="overlay-btn" id="skip-btn">Skip</button>
@@ -267,27 +267,20 @@
   var params = new URLSearchParams(window.location.search);
   var debugLoading = params.get('loading');
   if (debugLoading === 'block') {
-    window.__portalBlocked = true; // prevent portal.js from running initPortal
+    window.__portalBlocked = true;
   }
   var hint = document.getElementById('loading-hint');
-
-  var t1 = setTimeout(function() {
-    if (!window.__portalInitialized && hint) {
-      hint.textContent = 'Loading portal...';
-    }
-  }, 500);
+  // "Loading portal..." is already in the HTML so it's visible immediately.
+  // After 6s, nudge the user toward Skip if still not ready.
   var t2 = setTimeout(function() {
     if (!window.__portalInitialized && hint) {
       hint.textContent = 'Taking longer than usual. You can press Skip below.';
     }
   }, 6000);
-  // Clean up timers once portal initializes
   var check = setInterval(function() {
     if (window.__portalInitialized) {
-      clearTimeout(t1);
       clearTimeout(t2);
       clearInterval(check);
-      if (hint) hint.textContent = '';
     }
   }, 200);
 })();
