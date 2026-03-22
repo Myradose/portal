@@ -637,6 +637,7 @@ function initPortal() {
         guideRing.mat.uniforms.uArcStart.value = 0
         guideRing.mat.uniforms.uArcDirection.value = 1
         instruction.classList.remove('hidden')
+        scene.resetVisuals()
         startHintAnimation()  // restart from default 12 o'clock
       } else {
         // Check for throw momentum
