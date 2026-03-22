@@ -263,8 +263,6 @@ section {
   font-size: 1.75rem;
   color: var(--color-text);
   margin-bottom: 0.5rem;
-  filter: brightness(10);
-  -webkit-filter: brightness(10);
 }
 
 .hero-subtitle {
