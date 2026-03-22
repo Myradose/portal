@@ -487,8 +487,6 @@ function initPortal() {
   let frontier = 0
   let directionLocked = false
   let tracing = false
-  let pointerDownPos = null
-  const SETTLE_THRESHOLD = 20 * 20  // px² — skip pointermoves until pointer moves 20px from touch
   let targetArcProgress = 0
   let smoothArcProgress = 0
   let autoCompleting = false
@@ -598,7 +596,6 @@ function initPortal() {
     killHintAnimation()
     if (throwTween) { throwTween.kill(); throwTween = null }
     velocityBuffer.length = 0
-    pointerDownPos = { x: e.clientX, y: e.clientY }
     tracing = true
     if (state.phase === 0) {
       state.phase = 1
@@ -613,13 +610,6 @@ function initPortal() {
   canvasEl.addEventListener('pointermove', e => {
     if (!tracing || state.phase >= 2) return
     e.preventDefault()
-    // Wait for pointer to move past settle threshold before detecting direction
-    if (pointerDownPos && !directionLocked) {
-      const dx = e.clientX - pointerDownPos.x
-      const dy = e.clientY - pointerDownPos.y
-      if (dx * dx + dy * dy < SETTLE_THRESHOLD) return
-      pointerDownPos = null
-    }
     updateTrace(getAngle(e))
     // Track angular progress for throw momentum
     if (directionLocked) {
