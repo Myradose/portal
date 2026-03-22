@@ -546,11 +546,6 @@ function initPortal() {
           throwTween.kill()
           throwTween = null
         }
-        if (!forward && frontier <= 0) {
-          throwTween.kill()
-          throwTween = null
-          resetToIdle()
-        }
       },
       onComplete() {
         throwTween = null
