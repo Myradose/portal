@@ -59,6 +59,7 @@ function initPortal() {
     haze: true,
     bloom: false, fakeBloom: true, // TODO: revert — desktop testing
     // ...(isIOS && { bloom: false, fakeBloom: true }),
+    coreSize: 0.01, emberSize: 0.06, hazeIntensity: 1.5, // TODO: revert if not iOS-only
   }
 
   const state = {
@@ -565,6 +566,105 @@ function initPortal() {
     guideRing.mesh.position.z = goReal ? 0.01 : -0.02
     guideRing.mesh.renderOrder = goReal ? 10 : -1
     toggleBtn.textContent = goReal ? 'Bloom: real' : 'Bloom: fake'
+  })
+
+  // --- Debug panel (press D to toggle) ---
+  const panel = document.createElement('div')
+  Object.assign(panel.style, {
+    position: 'fixed', top: '50px', right: '16px', zIndex: '9999',
+    background: 'rgba(0, 0, 0, 0.88)', padding: '12px 14px', borderRadius: '8px',
+    color: '#e8e8ed', fontFamily: 'Inter, system-ui, sans-serif', fontSize: '11px',
+    maxHeight: '80vh', overflowY: 'auto', overflowX: 'hidden', width: '260px',
+    display: 'none', backdropFilter: 'blur(8px)',
+    border: '1px solid rgba(245, 158, 11, 0.15)', boxSizing: 'border-box',
+  })
+  document.body.appendChild(panel)
+
+  function addSection(label) {
+    const h = document.createElement('div')
+    h.textContent = label
+    Object.assign(h.style, { color: '#f59e0b', fontWeight: '600', fontSize: '11px', margin: '10px 0 4px', letterSpacing: '0.05em' })
+    panel.appendChild(h)
+  }
+
+  function addSlider(label, get, set, min, max, step) {
+    const row = document.createElement('div')
+    Object.assign(row.style, { display: 'flex', alignItems: 'center', gap: '6px', margin: '3px 0' })
+
+    const lbl = document.createElement('span')
+    lbl.textContent = label
+    Object.assign(lbl.style, { width: '80px', flexShrink: '0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' })
+
+    const input = document.createElement('input')
+    input.type = 'range'
+    input.min = min; input.max = max; input.step = step
+    input.value = get()
+    Object.assign(input.style, { flex: '1', minWidth: '0', accentColor: '#f59e0b', height: '14px' })
+
+    const val = document.createElement('span')
+    val.textContent = Number(get()).toFixed(2)
+    Object.assign(val.style, { width: '34px', flexShrink: '0', textAlign: 'right', fontFamily: 'JetBrains Mono, monospace', fontSize: '10px' })
+
+    input.addEventListener('input', () => {
+      set(parseFloat(input.value))
+      val.textContent = parseFloat(input.value).toFixed(2)
+    })
+
+    row.appendChild(lbl)
+    row.appendChild(input)
+    row.appendChild(val)
+    panel.appendChild(row)
+    sliders.push({ input, val, get, set })
+    return input
+  }
+
+  const sliders = []
+  const defaults = { ...PORTAL_SCENE_DEFAULTS }
+
+  function resetAll() {
+    for (const key of Object.keys(defaults)) opts[key] = defaults[key]
+    for (const s of sliders) {
+      s.input.value = s.get()
+      s.val.textContent = Number(s.get()).toFixed(2)
+    }
+  }
+
+  const resetBtn = document.createElement('button')
+  resetBtn.textContent = 'Reset'
+  Object.assign(resetBtn.style, {
+    width: '100%', padding: '5px', margin: '4px 0 6px', border: 'none', borderRadius: '4px',
+    background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b',
+    fontFamily: 'Inter, system-ui, sans-serif', fontSize: '11px', cursor: 'pointer',
+  })
+  resetBtn.addEventListener('click', resetAll)
+  panel.appendChild(resetBtn)
+
+  addSection('GLOW HALOS')
+  addSlider('Glow size', () => opts.glowSize, v => opts.glowSize = v, 0.05, 1.0, 0.01)
+  addSlider('Glow opacity', () => opts.glowOpacity, v => opts.glowOpacity = v, 0.01, 0.4, 0.01)
+  addSlider('Core glow sz', () => opts.coreGlowSize, v => opts.coreGlowSize = v, 0.05, 1.0, 0.01)
+  addSlider('Core glow op', () => opts.coreGlowOpacity, v => opts.coreGlowOpacity = v, 0.01, 0.4, 0.01)
+
+  addSection('PARTICLES')
+  addSlider('Ember size', () => opts.emberSize, v => opts.emberSize = v, 0.01, 0.2, 0.005)
+  addSlider('Core size', () => opts.coreSize, v => opts.coreSize = v, 0.01, 0.3, 0.005)
+  addSlider('Ember opacity', () => opts.fakeBloomEmberOpacity, v => opts.fakeBloomEmberOpacity = v, 0.1, 1.0, 0.05)
+  addSlider('Core opacity', () => opts.fakeBloomCoreOpacity, v => opts.fakeBloomCoreOpacity = v, 0.1, 1.0, 0.05)
+  addSlider('Trail boost', () => opts.trailBoost, v => opts.trailBoost = v, 1.0, 3.0, 0.1)
+
+  addSection('HAZE')
+  addSlider('Haze intensity', () => opts.hazeIntensity, v => opts.hazeIntensity = v, 0.0, 5.0, 0.1)
+  addSlider('Haze boost', () => opts.hazeBoost, v => opts.hazeBoost = v, 0.5, 5.0, 0.1)
+
+  addSection('BLOOM (real)')
+  addSlider('Strength', () => opts.bloomStrength, v => opts.bloomStrength = v, 0.0, 2.0, 0.05)
+  addSlider('Radius', () => opts.bloomRadius, v => opts.bloomRadius = v, 0.0, 1.0, 0.05)
+  addSlider('Threshold', () => opts.bloomThreshold, v => opts.bloomThreshold = v, 0.0, 1.0, 0.05)
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'd' && !e.ctrlKey && !e.metaKey && !e.altKey && e.target === document.body) {
+      panel.style.display = panel.style.display === 'none' ? 'block' : 'none'
+    }
   })
 
   // --- Debug API ---

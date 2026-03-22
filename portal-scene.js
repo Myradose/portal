@@ -27,10 +27,14 @@ export const PORTAL_SCENE_DEFAULTS = {
   groundY: -1.18,
   groundDim: 0.35,
   fakeBloom: false,
-  glowSize: 0.35,
-  glowOpacity: 0.08,
-  coreGlowSize: 0.50,
-  coreGlowOpacity: 0.10,
+  glowSize: 0.08,
+  glowOpacity: 0.10,
+  coreGlowSize: 0.55,
+  coreGlowOpacity: 0.05,
+  trailBoost: 1.0,
+  fakeBloomEmberOpacity: 0.60,
+  fakeBloomCoreOpacity: 0.75,
+  hazeBoost: 1.7,
 }
 
 const RING_RADIUS = 1.15
@@ -247,12 +251,13 @@ function createSparkSystem(state, opts, glowTex, portalGroup) {
       tCol[i * 6 + 5] = 0.0
 
       if (opts.fakeBloom) {
-        tCol[i * 6] *= 1.4
-        tCol[i * 6 + 1] *= 1.4
-        tCol[i * 6 + 2] *= 1.4
-        tCol[i * 6 + 3] *= 1.4
-        tCol[i * 6 + 4] *= 1.4
-        tCol[i * 6 + 5] *= 1.4
+        const tb = opts.trailBoost
+        tCol[i * 6] *= tb
+        tCol[i * 6 + 1] *= tb
+        tCol[i * 6 + 2] *= tb
+        tCol[i * 6 + 3] *= tb
+        tCol[i * 6 + 4] *= tb
+        tCol[i * 6 + 5] *= tb
       }
 
       if (fade > 0.05) {
@@ -274,12 +279,12 @@ function createSparkSystem(state, opts, glowTex, portalGroup) {
 
     emberMat.size = opts.emberSize
     if (opts.fakeBloom) {
-      emberMat.color.setHex(0xf0a030)
-      emberMat.opacity = 0.75
+      emberMat.opacity = opts.fakeBloomEmberOpacity
     } else {
-      emberMat.color.setHex(0xee8811)
       emberMat.opacity = 0.6
     }
+    glowMat.size = opts.glowSize
+    glowMat.opacity = opts.glowOpacity
     trailGeo.attributes.position.needsUpdate = true
     trailGeo.attributes.color.needsUpdate = true
     emberGeo.attributes.position.needsUpdate = true
@@ -368,8 +373,7 @@ function createCoreSystem(state, opts, glowTex, portalGroup) {
     }
     coreMat.size = opts.coreSize
     if (opts.fakeBloom) {
-      coreMat.color.setHex(0xf0a030)
-      coreMat.opacity = 0.8
+      coreMat.opacity = opts.fakeBloomCoreOpacity
       const cgPos = coreGlowGeo.attributes.position.array
       for (let i = 0; i < CORE_COUNT; i++) {
         cgPos[i * 3] = cPos[i * 3]
@@ -425,10 +429,12 @@ function createHazeSystem(state, opts, portalGroup) {
   const hazeCx = hazeSize / 2
   const hazeGrad = hazeCtx.createRadialGradient(hazeCx, hazeCx, 0, hazeCx, hazeCx, hazeCx)
   hazeGrad.addColorStop(0, 'rgba(0, 0, 0, 0)')
-  hazeGrad.addColorStop(0.35, 'rgba(60, 8, 0, 0)')
-  hazeGrad.addColorStop(0.52, 'rgba(120, 25, 2, 0.2)')
-  hazeGrad.addColorStop(0.65, 'rgba(80, 12, 0, 0.12)')
-  hazeGrad.addColorStop(0.85, 'rgba(40, 5, 0, 0.04)')
+  hazeGrad.addColorStop(0.22, 'rgba(50, 8, 0, 0.05)')
+  hazeGrad.addColorStop(0.34, 'rgba(100, 20, 1, 0.15)')
+  hazeGrad.addColorStop(0.46, 'rgba(130, 30, 2, 0.25)')
+  hazeGrad.addColorStop(0.56, 'rgba(100, 20, 1, 0.18)')
+  hazeGrad.addColorStop(0.68, 'rgba(70, 12, 0, 0.10)')
+  hazeGrad.addColorStop(0.82, 'rgba(40, 5, 0, 0.04)')
   hazeGrad.addColorStop(1, 'rgba(0, 0, 0, 0)')
   hazeCtx.fillStyle = hazeGrad
   hazeCtx.fillRect(0, 0, hazeSize, hazeSize)
@@ -438,7 +444,7 @@ function createHazeSystem(state, opts, portalGroup) {
     map: { value: hazeTex },
     uArcStart: { value: DEFAULT_ARC_START },
     uArcProgress: { value: 0.0 },
-    uSoftEdge: { value: 0.5 },
+    uSoftEdge: { value: 0.8 },
     uIntensity: { value: 1.0 },
   }
   const hazeMat = new THREE.ShaderMaterial({
@@ -495,7 +501,7 @@ function createHazeSystem(state, opts, portalGroup) {
   })
   const hazeGeo = new THREE.PlaneGeometry(1, 1)
   const hazeMesh = new THREE.Mesh(hazeGeo, hazeMat)
-  hazeMesh.scale.set(4.0, 4.0, 1)
+  hazeMesh.scale.set(5.0, 5.0, 1)
   hazeMesh.position.z = -0.1
   hazeMesh.visible = false
   portalGroup.add(hazeMesh)
@@ -508,7 +514,7 @@ function createHazeSystem(state, opts, portalGroup) {
     } else {
       hazeMesh.visible = false
     }
-    uniforms.uIntensity.value = opts.hazeIntensity * (opts.fakeBloom ? 2.0 : 1.0)
+    uniforms.uIntensity.value = opts.hazeIntensity * (opts.fakeBloom ? opts.hazeBoost : 1.0)
   }
 
   function reset() {
