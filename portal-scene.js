@@ -35,6 +35,8 @@ export const PORTAL_SCENE_DEFAULTS = {
   fakeBloomEmberOpacity: 0.60,
   fakeBloomCoreOpacity: 0.75,
   hazeBoost: 0.8,
+  emberFadePower: 3,
+  trailFadePower: 2,
 }
 
 const RING_RADIUS = 1.15
@@ -238,7 +240,8 @@ function createSparkSystem(state, opts, glowTex, portalGroup) {
       const dist = Math.sqrt(hx * hx + hy * hy)
       const distFromRing = Math.max(0, dist - RING_RADIUS)
       const rs = Math.min(1, distFromRing * 7.0)
-      const fade = Math.max(0, 1 - life * life * life)
+      const trailFade = Math.max(0, 1 - Math.pow(life, opts.trailFadePower))
+      const emberFade = Math.max(0, 1 - Math.pow(life, opts.emberFadePower))
 
       const dim = sparkGrounded[i] ? opts.groundDim : 1.0
 
@@ -249,13 +252,13 @@ function createSparkSystem(state, opts, glowTex, portalGroup) {
       tPos[i * 6 + 4] = tailY
       tPos[i * 6 + 5] = hz
 
-      tCol[i * 6]     = (0.6 - rs * 0.15) * fade * dim
-      tCol[i * 6 + 1] = (0.25 - rs * 0.22) * fade * dim
-      tCol[i * 6 + 2] = (0.02 - rs * 0.02) * fade * dim
+      tCol[i * 6]     = (0.6 - rs * 0.15) * trailFade * dim
+      tCol[i * 6 + 1] = (0.25 - rs * 0.22) * trailFade * dim
+      tCol[i * 6 + 2] = (0.02 - rs * 0.02) * trailFade * dim
       const trs = Math.min(1, rs + 0.4)
-      const tailFade = fade * 0.6
-      tCol[i * 6 + 3] = (0.5 - trs * 0.15) * tailFade * dim
-      tCol[i * 6 + 4] = (0.1 - trs * 0.09) * tailFade * dim
+      const tailDim = trailFade * 0.6
+      tCol[i * 6 + 3] = (0.5 - trs * 0.15) * tailDim * dim
+      tCol[i * 6 + 4] = (0.1 - trs * 0.09) * tailDim * dim
       tCol[i * 6 + 5] = 0.0
 
       if (opts.fakeBloom) {
@@ -268,12 +271,12 @@ function createSparkSystem(state, opts, glowTex, portalGroup) {
         tCol[i * 6 + 5] *= tb
       }
 
-      if (fade > 0.05) {
+      if (emberFade > 0.05) {
         ePos[i * 3] = hx
         ePos[i * 3 + 1] = hy
         ePos[i * 3 + 2] = hz
-        // ember color: base amber * fade * dim
-        const ef = fade * dim
+        // ember color: base amber * emberFade * dim
+        const ef = emberFade * dim
         eCol[i * 3]     = 0.93 * ef  // 0xee -> 0.93
         eCol[i * 3 + 1] = 0.53 * ef  // 0x88 -> 0.53
         eCol[i * 3 + 2] = 0.07 * ef  // 0x11 -> 0.07
