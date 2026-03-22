@@ -26,6 +26,11 @@ export const PORTAL_SCENE_DEFAULTS = {
   hazeIntensity: 1.3,
   groundY: -1.18,
   groundDim: 0.35,
+  fakeBloom: false,
+  glowSize: 0.35,
+  glowOpacity: 0.08,
+  coreGlowSize: 0.50,
+  coreGlowOpacity: 0.10,
 }
 
 const RING_RADIUS = 1.15
@@ -131,9 +136,27 @@ function createSparkSystem(state, opts, glowTex, portalGroup) {
   emberMesh.frustumCulled = false
   portalGroup.add(emberMesh)
 
+  // Glow halo layer (fake bloom for iOS)
+  const glowPositions = new Float32Array(SPARK_COUNT * 3)
+  const glowGeo = new THREE.BufferGeometry()
+  glowGeo.setAttribute('position', new THREE.BufferAttribute(glowPositions, 3))
+  const glowMat = new THREE.PointsMaterial({
+    map: glowTex,
+    color: 0xee8833,
+    size: opts.glowSize,
+    transparent: true,
+    opacity: opts.glowOpacity,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  })
+  const glowMesh = new THREE.Points(glowGeo, glowMat)
+  glowMesh.frustumCulled = false
+  portalGroup.add(glowMesh)
+
   function update(dt, t) {
     trailMesh.visible = opts.sparks
     emberMesh.visible = opts.sparks
+    glowMesh.visible = opts.fakeBloom && opts.sparks
     if (!opts.sparks) return
 
     if (state.phase === 1 || state.phase === 3) {
@@ -143,6 +166,7 @@ function createSparkSystem(state, opts, glowTex, portalGroup) {
     const tPos = trailGeo.attributes.position.array
     const tCol = trailGeo.attributes.color.array
     const ePos = emberGeo.attributes.position.array
+    const gPos = glowGeo.attributes.position.array
 
     for (let i = 0; i < SPARK_COUNT; i++) {
       sparkAge[i] += dt
@@ -152,6 +176,7 @@ function createSparkSystem(state, opts, glowTex, portalGroup) {
           spawn(i, t)
         } else {
           ePos[i * 3] = 0; ePos[i * 3 + 1] = 0; ePos[i * 3 + 2] = -999
+          gPos[i * 3] = 0; gPos[i * 3 + 1] = 0; gPos[i * 3 + 2] = -999
           tPos[i * 6] = 0; tPos[i * 6 + 1] = 0; tPos[i * 6 + 2] = -999
           tPos[i * 6 + 3] = 0; tPos[i * 6 + 4] = 0; tPos[i * 6 + 5] = -999
           tCol[i * 6] = 0; tCol[i * 6 + 1] = 0; tCol[i * 6 + 2] = 0
@@ -221,21 +246,44 @@ function createSparkSystem(state, opts, glowTex, portalGroup) {
       tCol[i * 6 + 4] = (0.1 - trs * 0.09) * tailFade * dim
       tCol[i * 6 + 5] = 0.0
 
+      if (opts.fakeBloom) {
+        tCol[i * 6] *= 1.4
+        tCol[i * 6 + 1] *= 1.4
+        tCol[i * 6 + 2] *= 1.4
+        tCol[i * 6 + 3] *= 1.4
+        tCol[i * 6 + 4] *= 1.4
+        tCol[i * 6 + 5] *= 1.4
+      }
+
       if (fade > 0.05) {
         ePos[i * 3] = hx
         ePos[i * 3 + 1] = hy
         ePos[i * 3 + 2] = hz
+        gPos[i * 3] = hx
+        gPos[i * 3 + 1] = hy
+        gPos[i * 3 + 2] = hz - 0.001
       } else {
         ePos[i * 3] = 0
         ePos[i * 3 + 1] = 0
         ePos[i * 3 + 2] = -999
+        gPos[i * 3] = 0
+        gPos[i * 3 + 1] = 0
+        gPos[i * 3 + 2] = -999
       }
     }
 
     emberMat.size = opts.emberSize
+    if (opts.fakeBloom) {
+      emberMat.color.setHex(0xf0a030)
+      emberMat.opacity = 0.75
+    } else {
+      emberMat.color.setHex(0xee8811)
+      emberMat.opacity = 0.6
+    }
     trailGeo.attributes.position.needsUpdate = true
     trailGeo.attributes.color.needsUpdate = true
     emberGeo.attributes.position.needsUpdate = true
+    glowGeo.attributes.position.needsUpdate = true
   }
 
   function reset() { killAll() }
@@ -245,6 +293,8 @@ function createSparkSystem(state, opts, glowTex, portalGroup) {
     trailMat.dispose()
     emberGeo.dispose()
     emberMat.dispose()
+    glowGeo.dispose()
+    glowMat.dispose()
   }
 
   return { update, reset, dispose }
@@ -265,8 +315,22 @@ function createCoreSystem(state, opts, glowTex, portalGroup) {
   coreParticles.frustumCulled = false
   portalGroup.add(coreParticles)
 
+  // Glow halo layer (fake bloom for iOS)
+  const coreGlowPositions = new Float32Array(CORE_COUNT * 3)
+  const coreGlowGeo = new THREE.BufferGeometry()
+  coreGlowGeo.setAttribute('position', new THREE.BufferAttribute(coreGlowPositions, 3))
+  const coreGlowMat = new THREE.PointsMaterial({
+    map: glowTex, color: 0xee8833, size: opts.coreGlowSize,
+    transparent: true, opacity: opts.coreGlowOpacity,
+    blending: THREE.AdditiveBlending, depthWrite: false,
+  })
+  const coreGlowMesh = new THREE.Points(coreGlowGeo, coreGlowMat)
+  coreGlowMesh.frustumCulled = false
+  portalGroup.add(coreGlowMesh)
+
   function update(t) {
     coreParticles.visible = opts.core
+    coreGlowMesh.visible = opts.fakeBloom && opts.core
     if (!opts.core) return
 
     const cPos = coreGeo.attributes.position.array
@@ -274,6 +338,7 @@ function createCoreSystem(state, opts, glowTex, portalGroup) {
       // no-op
     } else if (state.phase === 1 || state.phase === 3) {
       coreParticles.rotation.z = 0
+      coreGlowMesh.rotation.z = 0
       for (let i = 0; i < CORE_COUNT; i++) {
         if (state.arcProgress < 0.01) {
           cPos[i * 3 + 2] = -999
@@ -299,24 +364,49 @@ function createCoreSystem(state, opts, glowTex, portalGroup) {
         coreGeo.attributes.position.needsUpdate = true
       }
       coreParticles.rotation.z = t * opts.ringSpeed
+      coreGlowMesh.rotation.z = t * opts.ringSpeed
     }
     coreMat.size = opts.coreSize
+    if (opts.fakeBloom) {
+      coreMat.color.setHex(0xf0a030)
+      coreMat.opacity = 0.8
+      const cgPos = coreGlowGeo.attributes.position.array
+      for (let i = 0; i < CORE_COUNT; i++) {
+        cgPos[i * 3] = cPos[i * 3]
+        cgPos[i * 3 + 1] = cPos[i * 3 + 1]
+        cgPos[i * 3 + 2] = cPos[i * 3 + 2] - 0.001
+      }
+      coreGlowGeo.attributes.position.needsUpdate = true
+    } else {
+      coreMat.color.setHex(0xee8811)
+      coreMat.opacity = 0.7
+    }
+    coreGlowMat.size = opts.coreGlowSize
+    coreGlowMat.opacity = opts.coreGlowOpacity
   }
 
   function reset() {
     const cPos = coreGeo.attributes.position.array
+    const cgPos = coreGlowGeo.attributes.position.array
     for (let i = 0; i < CORE_COUNT; i++) {
       cPos[i * 3] = 0
       cPos[i * 3 + 1] = 0
       cPos[i * 3 + 2] = -999
+      cgPos[i * 3] = 0
+      cgPos[i * 3 + 1] = 0
+      cgPos[i * 3 + 2] = -999
     }
     coreGeo.attributes.position.needsUpdate = true
+    coreGlowGeo.attributes.position.needsUpdate = true
     coreParticles.rotation.z = 0
+    coreGlowMesh.rotation.z = 0
   }
 
   function dispose() {
     coreGeo.dispose()
     coreMat.dispose()
+    coreGlowGeo.dispose()
+    coreGlowMat.dispose()
   }
 
   reset()
@@ -418,7 +508,7 @@ function createHazeSystem(state, opts, portalGroup) {
     } else {
       hazeMesh.visible = false
     }
-    uniforms.uIntensity.value = opts.hazeIntensity
+    uniforms.uIntensity.value = opts.hazeIntensity * (opts.fakeBloom ? 2.0 : 1.0)
   }
 
   function reset() {

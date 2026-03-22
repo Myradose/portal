@@ -56,8 +56,9 @@ function initPortal() {
     ...PORTAL_SCENE_DEFAULTS,
     ringSize: Math.round(SCENE_H * (360 / 552)),
     dpr: 2,
-    haze: !isIOS,
-    ...(isIOS && { bloomStrength: 0.8 }),
+    haze: true,
+    bloom: false, fakeBloom: true, // TODO: revert — desktop testing
+    // ...(isIOS && { bloom: false, fakeBloom: true }),
   }
 
   const state = {
@@ -83,7 +84,7 @@ function initPortal() {
       depthWrite: false,
       uniforms: {
         uColor: { value: new THREE.Color(0xf59e0b) },
-        uOpacity: { value: 0.18 },
+        uOpacity: { value: opts.bloom ? 0.18 : 0.35 },
         uDashes: { value: 32.0 },
         uGap: { value: 0.45 },
       },
@@ -110,9 +111,9 @@ function initPortal() {
       `,
     })
     const mesh = new THREE.Mesh(geo, mat)
-    mesh.position.z = 0.01
+    mesh.position.z = -0.02
     mesh.frustumCulled = false
-    mesh.renderOrder = 10
+    mesh.renderOrder = -1
     scene.getPortalGroup().add(mesh)
     return { mesh, geo, mat }
   })()
@@ -543,6 +544,27 @@ function initPortal() {
   }
 
   smoothLoop()
+
+  // --- Bloom toggle (temporary, for A/B comparison) ---
+  const toggleBtn = document.createElement('button')
+  toggleBtn.textContent = 'Bloom: fake'
+  Object.assign(toggleBtn.style, {
+    position: 'fixed', top: '16px', right: '16px', zIndex: '9999',
+    padding: '8px 14px', border: 'none', borderRadius: '6px',
+    background: 'rgba(245, 158, 11, 0.2)', color: '#f59e0b',
+    fontFamily: 'Inter, system-ui, sans-serif', fontSize: '13px',
+    cursor: 'pointer', backdropFilter: 'blur(8px)',
+  })
+  document.body.appendChild(toggleBtn)
+  toggleBtn.addEventListener('click', () => {
+    const goReal = !opts.bloom
+    opts.bloom = goReal
+    opts.fakeBloom = !goReal
+    guideRing.mat.uniforms.uOpacity.value = goReal ? 0.18 : 0.35
+    guideRing.mesh.position.z = goReal ? 0.01 : -0.02
+    guideRing.mesh.renderOrder = goReal ? 10 : -1
+    toggleBtn.textContent = goReal ? 'Bloom: real' : 'Bloom: fake'
+  })
 
   // --- Debug API ---
   window.__portalDebug = {
