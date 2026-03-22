@@ -429,28 +429,20 @@ function initPortal() {
 
   // Resize portal to match new viewport
   let resizeTimer
-  function readDims() {
-    if (isIOS && window.visualViewport) {
-      w = Math.round(window.visualViewport.width)
-      h = Math.round(window.visualViewport.height)
-    } else {
-      w = window.innerWidth
-      h = window.innerHeight
-    }
-  }
-  function handleResize() {
-    readDims()
+  function applyResize(newW, newH) {
+    w = newW
+    h = newH
     calcSceneDims()
     viewportScale = h / SCENE_H
     clipR = (opts.ringSize * CLIP_RADIUS_RATIO * viewportScale) / CONTENT_SCALE_INITIAL
     if (portalActive || zooming) {
       // Update camera + renderer immediately to prevent aspect ratio stretch
       scene.resize(SCENE_W, SCENE_H)
+      // Debounce the expensive composer/bloom resize on desktop;
+      // on iOS, resize immediately or bloom render target mismatches
       if (isIOS) {
-        // iOS: resize composer immediately or bloom render target mismatches
         scene.resizeComposer(SCENE_W, SCENE_H)
       } else {
-        // Desktop: debounce expensive composer/bloom resize to avoid lag
         clearTimeout(resizeTimer)
         resizeTimer = setTimeout(() => {
           scene.resizeComposer(SCENE_W, SCENE_H)
@@ -458,15 +450,17 @@ function initPortal() {
       }
     }
   }
-  window.addEventListener('resize', handleResize)
+  // Desktop: window resize is reliable
+  window.addEventListener('resize', () => {
+    applyResize(window.innerWidth, window.innerHeight)
+  })
+  // iOS: ResizeObserver on the overlay fires after layout settles with
+  // correct dimensions, bypassing all iOS viewport reporting quirks
   if (isIOS) {
-    // iOS Safari delays layout on rotation; re-read after settle
-    window.addEventListener('orientationchange', () => {
-      setTimeout(handleResize, 150)
-    })
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', handleResize)
-    }
+    new ResizeObserver((entries) => {
+      const { width, height } = entries[0].contentRect
+      if (width && height) applyResize(Math.round(width), Math.round(height))
+    }).observe(overlay)
   }
 
   // --- Play creation (matches usePortalTimelines.playCreation) ---
