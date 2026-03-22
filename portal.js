@@ -200,10 +200,10 @@ function initPortal() {
     cCtx.lineTo(17 * sc, 28 * sc)
     cCtx.lineTo(28 * sc, 26 * sc)
     cCtx.closePath()
-    cCtx.fillStyle = 'rgba(255, 255, 255, 0.9)'
+    cCtx.fillStyle = 'rgba(180, 180, 180, 0.9)'
     cCtx.fill()
     cCtx.lineWidth = 1.5 * sc
-    cCtx.strokeStyle = 'rgba(0, 0, 0, 0.5)'
+    cCtx.strokeStyle = 'rgba(40, 40, 40, 0.6)'
     cCtx.stroke()
     cCtx.restore()
 
