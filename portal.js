@@ -583,6 +583,8 @@ function initPortal() {
     opts.bloom = goReal
     opts.fakeBloom = !goReal
     if (isIOS) opts.haze = !goReal
+    opts.coreSize = goReal ? 0.12 : 0.01
+    opts.hazeIntensity = goReal ? 1.3 : 2.2
     guideRing.mat.uniforms.uOpacity.value = goReal ? 0.18 : 0.35
     guideRing.mesh.position.z = goReal ? 0.01 : -0.02
     guideRing.mesh.renderOrder = goReal ? 10 : -1

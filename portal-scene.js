@@ -422,29 +422,49 @@ function createCoreSystem(state, opts, glowTex, portalGroup) {
 
 function createHazeSystem(state, opts, portalGroup) {
   const hazeSize = 256
-  const hazeCanvas = document.createElement('canvas')
-  hazeCanvas.width = hazeSize
-  hazeCanvas.height = hazeSize
-  const hazeCtx = hazeCanvas.getContext('2d')
-  const hazeCx = hazeSize / 2
-  const hazeGrad = hazeCtx.createRadialGradient(hazeCx, hazeCx, 0, hazeCx, hazeCx, hazeCx)
-  hazeGrad.addColorStop(0, 'rgba(0, 0, 0, 0)')
-  hazeGrad.addColorStop(0.22, 'rgba(50, 8, 0, 0.05)')
-  hazeGrad.addColorStop(0.34, 'rgba(100, 20, 1, 0.15)')
-  hazeGrad.addColorStop(0.46, 'rgba(130, 30, 2, 0.25)')
-  hazeGrad.addColorStop(0.56, 'rgba(100, 20, 1, 0.18)')
-  hazeGrad.addColorStop(0.68, 'rgba(70, 12, 0, 0.10)')
-  hazeGrad.addColorStop(0.82, 'rgba(40, 5, 0, 0.04)')
-  hazeGrad.addColorStop(1, 'rgba(0, 0, 0, 0)')
-  hazeCtx.fillStyle = hazeGrad
-  hazeCtx.fillRect(0, 0, hazeSize, hazeSize)
-  const hazeTex = new THREE.CanvasTexture(hazeCanvas)
+
+  function makeHazeTex(stops) {
+    const c = document.createElement('canvas')
+    c.width = hazeSize; c.height = hazeSize
+    const ctx = c.getContext('2d')
+    const cx = hazeSize / 2
+    const g = ctx.createRadialGradient(cx, cx, 0, cx, cx, cx)
+    for (const [s, col] of stops) g.addColorStop(s, col)
+    ctx.fillStyle = g
+    ctx.fillRect(0, 0, hazeSize, hazeSize)
+    return new THREE.CanvasTexture(c)
+  }
+
+  // Original gradient (matches presentation — tuned for real bloom)
+  const realHazeTex = makeHazeTex([
+    [0, 'rgba(0, 0, 0, 0)'],
+    [0.35, 'rgba(60, 8, 0, 0)'],
+    [0.52, 'rgba(120, 25, 2, 0.2)'],
+    [0.65, 'rgba(80, 12, 0, 0.12)'],
+    [0.85, 'rgba(40, 5, 0, 0.04)'],
+    [1, 'rgba(0, 0, 0, 0)'],
+  ])
+
+  // Wider, more diffuse gradient (tuned for fake bloom on iOS)
+  const fakeHazeTex = makeHazeTex([
+    [0, 'rgba(0, 0, 0, 0)'],
+    [0.22, 'rgba(50, 8, 0, 0.05)'],
+    [0.34, 'rgba(100, 20, 1, 0.15)'],
+    [0.46, 'rgba(130, 30, 2, 0.25)'],
+    [0.56, 'rgba(100, 20, 1, 0.18)'],
+    [0.68, 'rgba(70, 12, 0, 0.10)'],
+    [0.82, 'rgba(40, 5, 0, 0.04)'],
+    [1, 'rgba(0, 0, 0, 0)'],
+  ])
+
+  const REAL_SCALE = 4.0, FAKE_SCALE = 5.0
+  const REAL_SOFT = 0.5, FAKE_SOFT = 0.8
 
   const uniforms = {
-    map: { value: hazeTex },
+    map: { value: opts.fakeBloom ? fakeHazeTex : realHazeTex },
     uArcStart: { value: DEFAULT_ARC_START },
     uArcProgress: { value: 0.0 },
-    uSoftEdge: { value: 0.8 },
+    uSoftEdge: { value: opts.fakeBloom ? FAKE_SOFT : REAL_SOFT },
     uIntensity: { value: 1.0 },
   }
   const hazeMat = new THREE.ShaderMaterial({
@@ -501,7 +521,7 @@ function createHazeSystem(state, opts, portalGroup) {
   })
   const hazeGeo = new THREE.PlaneGeometry(1, 1)
   const hazeMesh = new THREE.Mesh(hazeGeo, hazeMat)
-  hazeMesh.scale.set(5.0, 5.0, 1)
+  hazeMesh.scale.setScalar(opts.fakeBloom ? FAKE_SCALE : REAL_SCALE)
   hazeMesh.position.z = -0.1
   hazeMesh.visible = false
   portalGroup.add(hazeMesh)
@@ -514,6 +534,16 @@ function createHazeSystem(state, opts, portalGroup) {
     } else {
       hazeMesh.visible = false
     }
+    // Swap haze config based on current mode
+    if (opts.fakeBloom) {
+      uniforms.map.value = fakeHazeTex
+      uniforms.uSoftEdge.value = FAKE_SOFT
+      hazeMesh.scale.setScalar(FAKE_SCALE)
+    } else {
+      uniforms.map.value = realHazeTex
+      uniforms.uSoftEdge.value = REAL_SOFT
+      hazeMesh.scale.setScalar(REAL_SCALE)
+    }
     uniforms.uIntensity.value = opts.hazeIntensity * (opts.fakeBloom ? opts.hazeBoost : 1.0)
   }
 
@@ -524,7 +554,8 @@ function createHazeSystem(state, opts, portalGroup) {
 
   function dispose() {
     hazeGeo.dispose()
-    hazeTex.dispose()
+    realHazeTex.dispose()
+    fakeHazeTex.dispose()
     hazeMat.dispose()
   }
 
