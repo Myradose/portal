@@ -59,7 +59,7 @@ function initPortal() {
     haze: true,
     bloom: false, fakeBloom: true, // TODO: revert — desktop testing
     // ...(isIOS && { bloom: false, fakeBloom: true }),
-    coreSize: 0.01, emberSize: 0.06, hazeIntensity: 1.7, // TODO: revert if not iOS-only
+    coreSize: 0.01, emberSize: 0.06, hazeIntensity: 2.2, // TODO: revert if not iOS-only
   }
 
   const state = {
@@ -546,17 +546,33 @@ function initPortal() {
 
   smoothLoop()
 
-  // --- Bloom toggle (temporary, for A/B comparison) ---
-  const toggleBtn = document.createElement('button')
-  toggleBtn.textContent = 'Bloom: fake'
-  Object.assign(toggleBtn.style, {
+  // --- Top-right button row ---
+  const btnRow = document.createElement('div')
+  Object.assign(btnRow.style, {
     position: 'fixed', top: '16px', right: '16px', zIndex: '9999',
+    display: 'flex', gap: '8px',
+  })
+  document.body.appendChild(btnRow)
+
+  const btnStyle = {
     padding: '8px 14px', border: 'none', borderRadius: '6px',
     background: 'rgba(245, 158, 11, 0.2)', color: '#f59e0b',
     fontFamily: 'Inter, system-ui, sans-serif', fontSize: '13px',
     cursor: 'pointer', backdropFilter: 'blur(8px)',
+  }
+
+  const debugBtn = document.createElement('button')
+  debugBtn.textContent = 'Debug'
+  Object.assign(debugBtn.style, btnStyle)
+  debugBtn.addEventListener('click', () => {
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none'
   })
-  document.body.appendChild(toggleBtn)
+  btnRow.appendChild(debugBtn)
+
+  const toggleBtn = document.createElement('button')
+  toggleBtn.textContent = 'Bloom: fake'
+  Object.assign(toggleBtn.style, btnStyle)
+  btnRow.appendChild(toggleBtn)
   toggleBtn.addEventListener('click', () => {
     const goReal = !opts.bloom
     opts.bloom = goReal

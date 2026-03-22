@@ -34,7 +34,7 @@ export const PORTAL_SCENE_DEFAULTS = {
   trailBoost: 1.0,
   fakeBloomEmberOpacity: 0.60,
   fakeBloomCoreOpacity: 0.75,
-  hazeBoost: 1.2,
+  hazeBoost: 0.8,
 }
 
 const RING_RADIUS = 1.15
