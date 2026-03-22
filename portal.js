@@ -57,8 +57,8 @@ function initPortal() {
     ringSize: Math.round(SCENE_H * (360 / 552)),
     dpr: 2,
     ...(isIOS
-      ? { bloom: false, fakeBloom: true, haze: true, coreSize: 0.01, emberSize: 0.06, hazeIntensity: 2.2 }
-      : { bloom: false, fakeBloom: true, haze: true, coreSize: 0.01, emberSize: 0.06, hazeIntensity: 2.2 }
+      ? { bloom: true, fakeBloom: false, haze: false, bloomStrength: 0.45, bloomRadius: 0, bloomThreshold: 0.1, emberFadePower: 0.3 }
+      : { haze: true }
     ),
   }
 
@@ -560,7 +560,7 @@ function initPortal() {
     display: 'none', backdropFilter: 'blur(8px)',
     border: '1px solid rgba(245, 158, 11, 0.15)', boxSizing: 'border-box',
   })
-  document.body.appendChild(panel)
+  // document.body.appendChild(panel) // uncomment to enable debug UI
 
   // --- Top-right button row ---
   const btnRow = document.createElement('div')
@@ -568,7 +568,7 @@ function initPortal() {
     position: 'fixed', top: '16px', right: '16px', zIndex: '9999',
     display: 'flex', gap: '6px', flexWrap: 'wrap', justifyContent: 'flex-end', maxWidth: '340px',
   })
-  document.body.appendChild(btnRow)
+  // document.body.appendChild(btnRow) // uncomment to enable debug UI
 
   const btnStyle = {
     padding: '8px 14px', border: 'none', borderRadius: '6px',
@@ -632,7 +632,7 @@ function initPortal() {
   addModeBtn('iOS Fake', IOS_FAKE)
 
   // Highlight initial mode
-  applyMode(isIOS ? IOS_FAKE : DESKTOP_FAKE)
+  // applyMode(isIOS ? IOS_FAKE : DESKTOP_FAKE) // uncomment to enable debug UI
 
   function addSection(label) {
     const h = document.createElement('div')
