@@ -88,6 +88,8 @@ function initPortal() {
         uOpacity: { value: opts.bloom ? 0.18 : 0.35 },
         uDashes: { value: 32.0 },
         uGap: { value: 0.45 },
+        uArcStart: { value: 0.0 },
+        uArcProgress: { value: 0.0 },
       },
       vertexShader: `
         varying vec2 vPos;
@@ -101,10 +103,17 @@ function initPortal() {
         uniform float uOpacity;
         uniform float uDashes;
         uniform float uGap;
+        uniform float uArcStart;
+        uniform float uArcProgress;
         varying vec2 vPos;
         #define TAU 6.2831853
         void main() {
           float angle = atan(vPos.y, vPos.x);
+          // Discard fragments in the already-traced arc
+          if (uArcProgress > 0.0) {
+            float rel = mod(angle - uArcStart + TAU, TAU);
+            if (rel < uArcProgress) discard;
+          }
           float segment = fract(angle / TAU * uDashes);
           if (segment < uGap) discard;
           gl_FragColor = vec4(uColor, uOpacity);
@@ -415,6 +424,7 @@ function initPortal() {
     if (state.phase === 0) {
       state.phase = 1
       state.arcStart = getAngle(e)
+      guideRing.mat.uniforms.uArcStart.value = state.arcStart
       instruction.classList.add('hidden')
       relocateHint(state.arcStart)
     }
@@ -520,7 +530,8 @@ function initPortal() {
     state.sparksActivated = Infinity
     state.coreNeedsFullCircle = true
     if (!windowShown) showPortalWindow()
-    gsap.to(guideRing.mat.uniforms.uOpacity, { value: 0, duration: 0.5, ease: 'power2.out' })
+    guideRing.mat.uniforms.uArcProgress.value = TAU
+    guideRing.mat.uniforms.uOpacity.value = 0
   }
 
   // --- Smoothing loop for tracing (runs alongside scene's own loop) ---
@@ -536,6 +547,8 @@ function initPortal() {
 
     if (state.phase === 1 && !autoCompleting && !playingCreation) {
       state.arcProgress = smoothArcProgress
+      // Hide traced portion of guide ring
+      guideRing.mat.uniforms.uArcProgress.value = smoothArcProgress
     } else if (state.phase === 2) {
       if (completionTime === 0) completionTime = t
       if (t - completionTime > 0.4) {
