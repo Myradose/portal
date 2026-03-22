@@ -369,7 +369,8 @@ function createCoreSystem(state, opts, glowTex, portalGroup) {
 
     const cPos = coreGeo.attributes.position.array
     if (state.phase === 0) {
-      // no-op
+      for (let i = 0; i < CORE_COUNT; i++) cPos[i * 3 + 2] = -999
+      coreGeo.attributes.position.needsUpdate = true
     } else if (state.phase === 1 || state.phase === 3) {
       coreParticles.rotation.z = 0
       coreGlowMesh.rotation.z = 0
