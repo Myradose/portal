@@ -282,9 +282,9 @@ function initPortal() {
     revealTl.to(contentOverlay, {
       opacity: 0, duration: 1.0, ease: 'power2.out',
     }, 0)
-    revealTl.to([skipBtn, playBtn], {
+    revealTl.to([skipBtn, playBtn, btnRow], {
       opacity: 0, duration: 1.0, ease: 'power2.out',
-      onComplete() { skipBtn.style.pointerEvents = 'none'; playBtn.style.pointerEvents = 'none' },
+      onComplete() { skipBtn.style.pointerEvents = 'none'; playBtn.style.pointerEvents = 'none'; btnRow.style.pointerEvents = 'none' },
     }, 0)
 
     // Use IntersectionObserver for content reveal — handles resize naturally
@@ -332,6 +332,8 @@ function initPortal() {
         if (revealTl) { revealTl.kill(); revealTl = null }
         scene.dispose()
         if (contentOverlay) contentOverlay.remove()
+        btnRow.remove()
+        panel.remove()
         document.body.insertBefore(content, overlay)
         overlay.remove()
         clearPortalStyles()
@@ -355,6 +357,8 @@ function initPortal() {
     guideRing.mat.dispose()
     scene.dispose()
     if (contentOverlay) contentOverlay.remove()
+    btnRow.remove()
+    panel.remove()
     document.body.insertBefore(content, overlay)
     clearPortalStyles()
     overlay.classList.add('skip-fade')
@@ -591,7 +595,7 @@ function initPortal() {
     background: 'rgba(0, 0, 0, 0.88)', padding: '12px 14px', borderRadius: '8px',
     color: '#e8e8ed', fontFamily: 'Inter, system-ui, sans-serif', fontSize: '11px',
     maxHeight: '80vh', overflowY: 'auto', overflowX: 'hidden', width: '260px',
-    display: 'block', backdropFilter: 'blur(8px)',
+    display: 'none', backdropFilter: 'blur(8px)',
     border: '1px solid rgba(245, 158, 11, 0.15)', boxSizing: 'border-box',
   })
   document.body.appendChild(panel)
