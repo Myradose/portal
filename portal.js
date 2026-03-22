@@ -12,6 +12,12 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
 
 function initPortal() {
 
+  // Prevent the browser from restoring scroll position on refresh.
+  // Without this, skip/play reveals the page at the old scroll offset
+  // before snapping to the top.
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual'
+  window.scrollTo(0, 0)
+
   const overlay = document.getElementById('trace-overlay')
   const content = document.getElementById('content')
   const instruction = document.getElementById('trace-instruction')
