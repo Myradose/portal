@@ -231,6 +231,9 @@ function initPortal() {
 
   function startHintAnimation(startAngle) {
     if (hintTimeline) hintTimeline.kill()
+    // Cancel any pending disposal from killHintAnimation
+    if (hintMaterial) gsap.killTweensOf(hintMaterial)
+    if (cursorMaterial) gsap.killTweensOf(cursorMaterial)
     if (!hintSprite) createHintSprite()
 
     let from = startAngle ?? Math.PI * 0.5 // default: 12 o'clock
@@ -506,6 +509,23 @@ function initPortal() {
     }, 1000)
   }
 
+  function resetToIdle() {
+    frontier = 0
+    state.phase = 0
+    state.arcStart = null
+    state.arcDirection = 0
+    directionLocked = false
+    targetArcProgress = 0
+    smoothArcProgress = 0
+    state.arcProgress = 0
+    guideRing.mat.uniforms.uArcProgress.value = 0
+    guideRing.mat.uniforms.uArcStart.value = 0
+    guideRing.mat.uniforms.uArcDirection.value = 1
+    instruction.classList.remove('hidden')
+    scene.resetVisuals()
+    startHintAnimation()
+  }
+
   function startMomentum(segVelocity) {
     const forward = segVelocity > 0
     const absV = Math.abs(segVelocity)
@@ -526,6 +546,11 @@ function initPortal() {
           beginAutoComplete()
           throwTween.kill()
           throwTween = null
+        }
+        if (!forward && frontier <= 0) {
+          throwTween.kill()
+          throwTween = null
+          resetToIdle()
         }
       },
       onComplete() {
@@ -623,22 +648,7 @@ function initPortal() {
   const endTrace = () => {
     if (tracing && state.phase === 1) {
       if (frontier <= 0) {
-        // Full reset: user backtracked all the way and released
-        frontier = 0
-        state.phase = 0
-        state.arcStart = null
-        state.arcDirection = 0
-        directionLocked = false
-        targetArcProgress = 0
-        smoothArcProgress = 0
-        state.arcProgress = 0
-        // Force guide ring uniforms immediately (smoothLoop skips phase !== 1)
-        guideRing.mat.uniforms.uArcProgress.value = 0
-        guideRing.mat.uniforms.uArcStart.value = 0
-        guideRing.mat.uniforms.uArcDirection.value = 1
-        instruction.classList.remove('hidden')
-        scene.resetVisuals()
-        startHintAnimation()  // restart from default 12 o'clock
+        resetToIdle()
       } else {
         // Check for throw momentum
         let thrown = false
