@@ -56,11 +56,10 @@ function initPortal() {
     ...PORTAL_SCENE_DEFAULTS,
     ringSize: Math.round(SCENE_H * (360 / 552)),
     dpr: 2,
-    haze: true,
-    bloom: false, fakeBloom: true, // TODO: revert — desktop testing
-    // ...(isIOS && { bloom: false, fakeBloom: true }),
-    coreSize: 0.01, emberSize: 0.06, hazeIntensity: 2.2, // TODO: revert if not iOS-only
-    ...(isIOS && { bloomStrength: 0.9, bloomRadius: 0.1, bloomThreshold: 0.15 }),
+    ...(isIOS
+      ? { bloom: false, fakeBloom: true, haze: true, coreSize: 0.01, emberSize: 0.06, hazeIntensity: 2.2 }
+      : { bloom: false, fakeBloom: true, haze: true, coreSize: 0.01, emberSize: 0.06, hazeIntensity: 2.2 }
+    ),
   }
 
   const state = {
@@ -555,7 +554,7 @@ function initPortal() {
   const btnRow = document.createElement('div')
   Object.assign(btnRow.style, {
     position: 'fixed', top: '16px', right: '16px', zIndex: '9999',
-    display: 'flex', gap: '8px',
+    display: 'flex', gap: '6px', flexWrap: 'wrap', justifyContent: 'flex-end', maxWidth: '340px',
   })
   document.body.appendChild(btnRow)
 
@@ -574,22 +573,42 @@ function initPortal() {
   })
   btnRow.appendChild(debugBtn)
 
-  const toggleBtn = document.createElement('button')
-  toggleBtn.textContent = 'Bloom: fake'
-  Object.assign(toggleBtn.style, btnStyle)
-  btnRow.appendChild(toggleBtn)
-  toggleBtn.addEventListener('click', () => {
-    const goReal = !opts.bloom
-    opts.bloom = goReal
-    opts.fakeBloom = !goReal
-    if (isIOS) opts.haze = !goReal
-    opts.coreSize = goReal ? 0.12 : 0.01
-    opts.hazeIntensity = goReal ? 1.3 : 2.2
-    guideRing.mat.uniforms.uOpacity.value = goReal ? 0.18 : 0.35
-    guideRing.mesh.position.z = goReal ? 0.01 : -0.02
-    guideRing.mesh.renderOrder = goReal ? 10 : -1
-    toggleBtn.textContent = goReal ? 'Bloom: real' : 'Bloom: fake'
-  })
+  // Desktop defaults
+  const DESKTOP_REAL = { bloom: true, fakeBloom: false, haze: true, coreSize: 0.12, emberSize: 0.06, hazeIntensity: 1.3, bloomStrength: 0.4, bloomRadius: 0.4, bloomThreshold: 0.25 }
+  const DESKTOP_FAKE = { bloom: false, fakeBloom: true, haze: true, coreSize: 0.01, emberSize: 0.06, hazeIntensity: 2.2 }
+  // iOS defaults
+  const IOS_REAL = { bloom: true, fakeBloom: false, haze: false, coreSize: 0.12, emberSize: 0.06, hazeIntensity: 1.3, bloomStrength: 0.9, bloomRadius: 0.1, bloomThreshold: 0.15 }
+  const IOS_FAKE = { bloom: false, fakeBloom: true, haze: true, coreSize: 0.01, emberSize: 0.06, hazeIntensity: 2.2 }
+
+  const modeButtons = []
+
+  function applyMode(preset) {
+    Object.assign(opts, preset)
+    guideRing.mat.uniforms.uOpacity.value = opts.bloom ? 0.18 : 0.35
+    guideRing.mesh.position.z = opts.bloom ? 0.01 : -0.02
+    guideRing.mesh.renderOrder = opts.bloom ? 10 : -1
+    modeButtons.forEach(b => b.el.style.background = 'rgba(245, 158, 11, 0.2)')
+    preset._btn.style.background = 'rgba(245, 158, 11, 0.5)'
+  }
+
+  function addModeBtn(label, preset) {
+    const btn = document.createElement('button')
+    btn.textContent = label
+    Object.assign(btn.style, btnStyle, { fontSize: '11px', padding: '6px 10px' })
+    btn.addEventListener('click', () => applyMode(preset))
+    btnRow.appendChild(btn)
+    preset._btn = btn
+    modeButtons.push({ el: btn, preset })
+    return btn
+  }
+
+  addModeBtn('Desktop Real', DESKTOP_REAL)
+  addModeBtn('Desktop Fake', DESKTOP_FAKE)
+  addModeBtn('iOS Real', IOS_REAL)
+  addModeBtn('iOS Fake', IOS_FAKE)
+
+  // Highlight initial mode
+  applyMode(isIOS ? IOS_FAKE : DESKTOP_FAKE)
 
   // --- Debug panel (press D to toggle) ---
   const panel = document.createElement('div')
