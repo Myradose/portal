@@ -147,7 +147,6 @@ function initPortal() {
   // --- Hint dot animation (looping pointer cue) ---
   const HINT_ARC_DEG = 60
   const HINT_ARC_RAD = HINT_ARC_DEG * Math.PI / 180
-  const HINT_SEGMENTS = Math.round(HINT_ARC_DEG / 360 * SEGMENTS) // 5
   const RING_RADIUS = 1.15
 
   let hintSprite = null
@@ -294,10 +293,6 @@ function initPortal() {
     hintTimeline.to(cursorMaterial, { opacity: 0, duration: 0.3, ease: 'power2.in',
       onComplete() { uniforms.uHintStart.value = 0; uniforms.uHintEnd.value = 0 },
     }, 1.5)
-  }
-
-  function relocateHint(angle) {
-    startHintAnimation(angle)
   }
 
   function killHintAnimation() {
@@ -466,6 +461,7 @@ function initPortal() {
   }
 
   function skipReveal() {
+    clearTimeout(hintDebounceTimer)
     killHintAnimation()
     if (revealTl) { revealTl.kill(); revealTl = null }
     guideRing.geo.dispose()
@@ -495,6 +491,50 @@ function initPortal() {
   let smoothArcProgress = 0
   let autoCompleting = false
   let playingCreation = false
+  let hintDebounceTimer = 0
+  let throwTween = null
+  const velocityBuffer = []
+  const THROW_MIN_VELOCITY = 8  // segments/second to trigger
+
+  function scheduleHintRestart() {
+    clearTimeout(hintDebounceTimer)
+    hintDebounceTimer = setTimeout(() => {
+      if (state.phase !== 1 || autoCompleting || playingCreation || tracing) return
+      const dir = state.arcDirection || 1
+      const frontierAngle = (state.arcStart ?? 0) + dir * (frontier / SEGMENTS) * TAU
+      startHintAnimation(frontierAngle)
+    }, 1000)
+  }
+
+  function startMomentum(segVelocity) {
+    const forward = segVelocity > 0
+    const absV = Math.abs(segVelocity)
+    const maxSegs = forward ? SEGMENTS - frontier : frontier
+    const throwSegs = Math.min(absV * 0.35, SEGMENTS * 0.4, maxSegs)
+    if (throwSegs < 1) return
+    const duration = Math.max(0.3, Math.min(1.2, throwSegs / absV * 3))
+    const targetF = forward ? frontier + throwSegs : frontier - throwSegs
+    const proxy = { f: frontier }
+    throwTween = gsap.to(proxy, {
+      f: targetF,
+      duration,
+      ease: 'power3.out',
+      onUpdate() {
+        frontier = Math.max(Math.floor(proxy.f), 0)
+        targetArcProgress = (frontier / SEGMENTS) * TAU
+        if (forward && frontier >= SEGMENTS * 0.85 && state.phase === 1 && !autoCompleting) {
+          beginAutoComplete()
+          throwTween.kill()
+          throwTween = null
+        }
+      },
+      onComplete() {
+        throwTween = null
+        scheduleHintRestart()
+      },
+    })
+  }
+
   let completionTime = 0
 
   function getAngle(e) {
@@ -544,9 +584,6 @@ function initPortal() {
       }
     }
     targetArcProgress = (frontier / SEGMENTS) * TAU
-    if (frontier >= HINT_SEGMENTS) {
-      killHintAnimation()
-    }
     if (frontier >= SEGMENTS * 0.85 && state.phase === 1 && !autoCompleting) {
       beginAutoComplete()
     }
@@ -555,6 +592,10 @@ function initPortal() {
   canvasEl.addEventListener('pointerdown', e => {
     if (state.phase >= 2) return
     e.preventDefault()
+    clearTimeout(hintDebounceTimer)
+    killHintAnimation()
+    if (throwTween) { throwTween.kill(); throwTween = null }
+    velocityBuffer.length = 0
     tracing = true
     if (state.phase === 0) {
       state.phase = 1
@@ -563,7 +604,6 @@ function initPortal() {
       directionLocked = false
       guideRing.mat.uniforms.uArcStart.value = state.arcStart
       instruction.classList.add('hidden')
-      relocateHint(state.arcStart)
     }
     updateTrace(getAngle(e))
   })
@@ -571,6 +611,14 @@ function initPortal() {
     if (!tracing || state.phase >= 2) return
     e.preventDefault()
     updateTrace(getAngle(e))
+    // Track angular progress for throw momentum
+    if (directionLocked) {
+      const offset = state.arcStart ?? 0
+      const dir = state.arcDirection
+      const progress = (((getAngle(e) - offset) * dir) % TAU + TAU) % TAU
+      velocityBuffer.push({ progress, time: performance.now() * 0.001 })
+      if (velocityBuffer.length > 4) velocityBuffer.shift()
+    }
   })
   const endTrace = () => {
     if (tracing && state.phase === 1) {
@@ -590,14 +638,30 @@ function initPortal() {
         guideRing.mat.uniforms.uArcDirection.value = 1
         instruction.classList.remove('hidden')
         startHintAnimation()  // restart from default 12 o'clock
-      } else if (frontier < HINT_SEGMENTS) {
-        // Partial trace -- restart hint at frontier (even if previously killed)
-        const dir = state.arcDirection || 1
-        const frontierAngle = (state.arcStart ?? 0) + dir * (frontier / SEGMENTS) * TAU
-        startHintAnimation(frontierAngle)
+      } else {
+        // Check for throw momentum
+        let thrown = false
+        if (velocityBuffer.length >= 2 && !autoCompleting) {
+          const start = velocityBuffer[Math.max(0, velocityBuffer.length - 3)]
+          const end = velocityBuffer[velocityBuffer.length - 1]
+          const dt = end.time - start.time
+          if (dt > 0.005 && dt < 0.15) {
+            const dProgress = end.progress - start.progress
+            // Filter wraparound artifacts (crossing arcStart gives huge jumps)
+            if (Math.abs(dProgress) > 0 && Math.abs(dProgress) < TAU * 0.3) {
+              const segVelocity = (dProgress / TAU * SEGMENTS) / dt
+              if (Math.abs(segVelocity) > THROW_MIN_VELOCITY) {
+                startMomentum(segVelocity)
+                thrown = true
+              }
+            }
+          }
+        }
+        if (!thrown) scheduleHintRestart()
       }
     }
     tracing = false
+    velocityBuffer.length = 0
   }
   canvasEl.addEventListener('pointerup', endTrace)
   canvasEl.addEventListener('pointercancel', endTrace)
@@ -629,6 +693,7 @@ function initPortal() {
   // --- Play creation (matches usePortalTimelines.playCreation) ---
   function playCreation() {
     if (state.phase >= 2 || autoCompleting || playingCreation) return
+    clearTimeout(hintDebounceTimer)
     killHintAnimation()
 
     const midTrace = state.phase === 1
@@ -667,6 +732,7 @@ function initPortal() {
 
   // --- Auto-complete (tracing reaches 85%) ---
   function beginAutoComplete() {
+    clearTimeout(hintDebounceTimer)
     autoCompleting = true
     showPortalWindow()
     const startArc = smoothArcProgress
