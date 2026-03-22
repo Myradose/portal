@@ -52,7 +52,13 @@ function initPortal() {
   }
   calcSceneDims()
   const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent)
-  const opts = { ...PORTAL_SCENE_DEFAULTS, ringSize: Math.round(SCENE_H * (360 / 552)), dpr: 2, haze: !isIOS }
+  const opts = {
+    ...PORTAL_SCENE_DEFAULTS,
+    ringSize: Math.round(SCENE_H * (360 / 552)),
+    dpr: 2,
+    haze: !isIOS,
+    ...(isIOS && { bloomStrength: 0.8 }),
+  }
 
   const state = {
     phase: 0,
