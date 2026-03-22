@@ -60,6 +60,7 @@ function initPortal() {
     bloom: false, fakeBloom: true, // TODO: revert — desktop testing
     // ...(isIOS && { bloom: false, fakeBloom: true }),
     coreSize: 0.01, emberSize: 0.06, hazeIntensity: 2.2, // TODO: revert if not iOS-only
+    ...(isIOS && { bloomStrength: 0.9, bloomRadius: 0.1, bloomThreshold: 1.15 }),
   }
 
   const state = {
