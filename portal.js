@@ -582,13 +582,24 @@ function initPortal() {
 
   const modeButtons = []
 
+  let activePreset = null
+
+  function refreshSliders() {
+    for (const s of sliders) {
+      s.input.value = s.get()
+      s.val.textContent = Number(s.get()).toFixed(2)
+    }
+  }
+
   function applyMode(preset) {
+    activePreset = preset
     Object.assign(opts, preset)
     guideRing.mat.uniforms.uOpacity.value = opts.bloom ? 0.18 : 0.35
     guideRing.mesh.position.z = opts.bloom ? 0.01 : -0.02
     guideRing.mesh.renderOrder = opts.bloom ? 10 : -1
     modeButtons.forEach(b => b.el.style.background = 'rgba(245, 158, 11, 0.2)')
     preset._btn.style.background = 'rgba(245, 158, 11, 0.5)'
+    refreshSliders()
   }
 
   function addModeBtn(label, preset) {
@@ -665,10 +676,8 @@ function initPortal() {
 
   function resetAll() {
     for (const key of Object.keys(defaults)) opts[key] = defaults[key]
-    for (const s of sliders) {
-      s.input.value = s.get()
-      s.val.textContent = Number(s.get()).toFixed(2)
-    }
+    if (activePreset) Object.assign(opts, activePreset)
+    refreshSliders()
   }
 
   const resetBtn = document.createElement('button')
