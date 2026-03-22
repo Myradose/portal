@@ -428,28 +428,45 @@ function initPortal() {
   playBtn.addEventListener('click', playCreation)
 
   // Resize portal to match new viewport
+  let resizeTimer
+  function readDims() {
+    if (isIOS && window.visualViewport) {
+      w = Math.round(window.visualViewport.width)
+      h = Math.round(window.visualViewport.height)
+    } else {
+      w = window.innerWidth
+      h = window.innerHeight
+    }
+  }
   function handleResize() {
-    // Prefer visualViewport dimensions — iOS Safari reports stale
-    // innerWidth/innerHeight during orientation changes
-    const vv = window.visualViewport
-    w = vv ? Math.round(vv.width) : window.innerWidth
-    h = vv ? Math.round(vv.height) : window.innerHeight
+    readDims()
     calcSceneDims()
     viewportScale = h / SCENE_H
     clipR = (opts.ringSize * CLIP_RADIUS_RATIO * viewportScale) / CONTENT_SCALE_INITIAL
     if (portalActive || zooming) {
+      // Update camera + renderer immediately to prevent aspect ratio stretch
       scene.resize(SCENE_W, SCENE_H)
-      // Composer must resize with renderer or bloom render target is mismatched
-      scene.resizeComposer(SCENE_W, SCENE_H)
+      if (isIOS) {
+        // iOS: resize composer immediately or bloom render target mismatches
+        scene.resizeComposer(SCENE_W, SCENE_H)
+      } else {
+        // Desktop: debounce expensive composer/bloom resize to avoid lag
+        clearTimeout(resizeTimer)
+        resizeTimer = setTimeout(() => {
+          scene.resizeComposer(SCENE_W, SCENE_H)
+        }, 100)
+      }
     }
   }
   window.addEventListener('resize', handleResize)
-  // iOS Safari delays layout on rotation; re-read after settle
-  window.addEventListener('orientationchange', () => {
-    setTimeout(handleResize, 150)
-  })
-  if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', handleResize)
+  if (isIOS) {
+    // iOS Safari delays layout on rotation; re-read after settle
+    window.addEventListener('orientationchange', () => {
+      setTimeout(handleResize, 150)
+    })
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleResize)
+    }
   }
 
   // --- Play creation (matches usePortalTimelines.playCreation) ---
