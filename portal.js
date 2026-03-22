@@ -575,7 +575,7 @@ function initPortal() {
     background: 'rgba(0, 0, 0, 0.88)', padding: '12px 14px', borderRadius: '8px',
     color: '#e8e8ed', fontFamily: 'Inter, system-ui, sans-serif', fontSize: '11px',
     maxHeight: '80vh', overflowY: 'auto', overflowX: 'hidden', width: '260px',
-    display: 'none', backdropFilter: 'blur(8px)',
+    display: 'block', backdropFilter: 'blur(8px)',
     border: '1px solid rgba(245, 158, 11, 0.15)', boxSizing: 'border-box',
   })
   document.body.appendChild(panel)
