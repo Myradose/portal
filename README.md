@@ -2,7 +2,7 @@
 
 Companion resources for **"The Doctor Strange Approach to Parallel Agent Orchestration"** by Alden Geipel at the [RVATech Data & AI Summit 2026](https://rvatech.com/).
 
-> **Experimental.** Everything here is experimental, not production-ready, and may have bugs. There is no setup guide. These tools were built for a conference demo and are shared in the spirit of openness.
+> **Experimental.** Everything here is experimental, not production-ready, and may have bugs. These tools were built for a conference demo and are shared in the spirit of openness.
 
 **Landing page:** [myradose.github.io/portal/](https://myradose.github.io/portal/)
 
