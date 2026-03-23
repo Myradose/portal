@@ -6,6 +6,10 @@ Companion resources for **"The Doctor Strange Approach to Parallel Agent Orchest
 
 **Landing page:** [myradose.github.io/portal/](https://myradose.github.io/portal/)
 
+## What is Environment Engineering?
+
+Isolated, observable, retrievable environments where AI agents can safely work on your codebase in parallel -- without interfering with each other or your local setup.
+
 ## Ecosystem
 
 The demo uses four tools working together:
