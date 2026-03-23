@@ -17,7 +17,7 @@ The demo uses four tools working together:
 | [Fullstack Test App](https://github.com/Myradose/fullstack-test-app) | Demo full-stack application used as the agent target |
 | [Presentation](https://github.com/Myradose/rvatech-2026-slides) | Slidev deck with Three.js portal effect |
 
-Each project is an independent repository (not submodules).
+Each project is an independent repository.
 
 ## How It Works
 
