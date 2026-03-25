@@ -319,6 +319,55 @@ section {
 }
 
 /* ========================================
+   Feedback CTA
+   ======================================== */
+.feedback-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 0 auto 0.75rem;
+  width: fit-content;
+  padding: 0.75rem 1.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  border: 1px solid rgba(139, 92, 246, 0.5);
+  border-radius: 8px;
+  text-decoration: none;
+  box-shadow: 0 0 24px rgba(124, 58, 237, 0.3);
+  transition: box-shadow 0.3s ease, transform 0.2s ease, background 0.2s ease;
+}
+
+.feedback-cta:hover,
+.feedback-cta:focus-visible {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  box-shadow: 0 0 32px rgba(124, 58, 237, 0.5);
+  transform: translateY(-2px);
+  color: #fff;
+}
+
+.feedback-cta:focus-visible {
+  outline: 2px solid #8b5cf6;
+  outline-offset: 2px;
+}
+
+.feedback-cta-label {
+  letter-spacing: 0.02em;
+}
+
+.feedback-cta-arrow svg {
+  display: block;
+  fill: rgba(255, 255, 255, 0.7);
+  transition: fill 0.2s ease;
+}
+
+.feedback-cta:hover .feedback-cta-arrow svg {
+  fill: #fff;
+}
+
+/* ========================================
    Cards
    ======================================== */
 .card {
